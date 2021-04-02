@@ -8,7 +8,7 @@ sXPC allows you to
 
 
 ## XPC service example
-_Note: full sample code in in **Sample** folder_
+_Note: full sample code resides in **Sample** folder_
 
 #### Assume protocol you are going to use over XPC connection
 ```
