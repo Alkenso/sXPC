@@ -44,7 +44,7 @@ proxy.perform(request) { response in print(response) }
 #### Setup listener
 
 ```
-let listener = CreateAuthorizationProviderXPCListener(listener: listener)
+let listener = CreateServiceXPCListener(listener: listener)
 listener.newConnectionHandler = {
     $0.exportedObject = DummyService()
     $0.resume()
