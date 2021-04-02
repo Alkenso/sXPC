@@ -67,17 +67,19 @@ public extension NSXPCConnection {
 }
 
 public extension NSCoder {
-    func encodeCodable<T: Encodable>(_ value: T) {
+    static let defaultCodablePayloadKey = "payload"
+    
+    func encodeCodable<T: Encodable>(_ value: T, forKey key: String = NSCoder.defaultCodablePayloadKey) {
         do {
             let data = try JSONEncoder().encode(value)
-            encode(data)
+            encode(data, forKey: key)
         } catch {
             failWithError(error)
         }
     }
     
-    func decodeCodable<T: Decodable>() -> T? {
-        guard let data = decodeData() else { return nil }
+    func decodeCodable<T: Decodable>(ofType type: T.Type = T.self, forKey key: String = NSCoder.defaultCodablePayloadKey) -> T? {
+        guard let data = decodeObject(forKey: key) as? Data else { return nil }
         do {
             return try JSONDecoder().decode(T.self, from: data)
         } catch {
