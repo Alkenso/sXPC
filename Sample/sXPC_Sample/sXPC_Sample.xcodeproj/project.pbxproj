@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		A40E359426177EAF0034EAF7 /* sXPC in Frameworks */ = {isa = PBXBuildFile; productRef = A40E359326177EAF0034EAF7 /* sXPC */; };
 		A40E35A6261783060034EAF7 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40E35A5261783060034EAF7 /* main.swift */; };
+		A40E35BE261785890034EAF7 /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4FA597426177D21005A5A11 /* Shared.framework */; };
+		A40E35BF261785890034EAF7 /* Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A4FA597426177D21005A5A11 /* Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A4FA594D26177CFB005A5A11 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4FA594C26177CFB005A5A11 /* AppDelegate.swift */; };
 		A4FA594F26177CFD005A5A11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A4FA594E26177CFD005A5A11 /* Assets.xcassets */; };
 		A4FA595226177CFD005A5A11 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A4FA595026177CFD005A5A11 /* MainMenu.xib */; };
@@ -20,6 +22,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A40E35C0261785890034EAF7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A4FA593F26177CD8005A5A11 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A4FA597326177D21005A5A11;
+			remoteInfo = Shared;
+		};
 		A4FA596626177D0C005A5A11 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A4FA593F26177CD8005A5A11 /* Project object */;
@@ -37,6 +46,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		A40E35C2261785890034EAF7 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A40E35BF261785890034EAF7 /* Shared.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A4FA596C26177D0C005A5A11 /* Embed XPC Services */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -68,7 +88,6 @@
 		A4FA594E26177CFD005A5A11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A4FA595126177CFD005A5A11 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		A4FA595326177CFD005A5A11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A4FA595426177CFD005A5A11 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		A4FA595D26177D0C005A5A11 /* XPCService.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = XPCService.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4FA596526177D0C005A5A11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A4FA597426177D21005A5A11 /* Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -90,6 +109,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A40E35BE261785890034EAF7 /* Shared.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -132,7 +152,6 @@
 				A4FA594E26177CFD005A5A11 /* Assets.xcassets */,
 				A4FA595026177CFD005A5A11 /* MainMenu.xib */,
 				A4FA595326177CFD005A5A11 /* Info.plist */,
-				A4FA595426177CFD005A5A11 /* App.entitlements */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -207,10 +226,12 @@
 				A4FA595926177D0C005A5A11 /* Sources */,
 				A4FA595A26177D0C005A5A11 /* Frameworks */,
 				A4FA595B26177D0C005A5A11 /* Resources */,
+				A40E35C2261785890034EAF7 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A40E35C1261785890034EAF7 /* PBXTargetDependency */,
 			);
 			name = XPCService;
 			productName = XPCService;
@@ -338,6 +359,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A40E35C1261785890034EAF7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A4FA597326177D21005A5A11 /* Shared */;
+			targetProxy = A40E35C0261785890034EAF7 /* PBXContainerItemProxy */;
+		};
 		A4FA596726177D0C005A5A11 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A4FA595C26177D0C005A5A11 /* XPCService */;
@@ -369,6 +395,7 @@
 		A4FA594326177CD8005A5A11 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 			};
 			name = Debug;
@@ -376,6 +403,7 @@
 		A4FA594426177CD8005A5A11 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 			};
 			name = Release;
@@ -416,13 +444,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 5ZVUD23J3X;
-				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -492,13 +516,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 5ZVUD23J3X;
-				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -558,12 +578,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 5ZVUD23J3X;
-				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -631,12 +648,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 5ZVUD23J3X;
-				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -696,13 +710,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 5ZVUD23J3X;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -777,13 +789,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 5ZVUD23J3X;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -864,8 +874,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alkenso/sXPC.git";
 			requirement = {
-				kind = revision;
-				revision = af383a6399fcc13029f12448de857b8b5431bb6c;
+				branch = main;
+				kind = branch;
 			};
 		};
 		A4FA598926177D63005A5A11 /* XCRemoteSwiftPackageReference "sXPC" */ = {

@@ -5,8 +5,8 @@
         "package": "sXPC",
         "repositoryURL": "https://github.com/Alkenso/sXPC.git",
         "state": {
-          "branch": null,
-          "revision": "af383a6399fcc13029f12448de857b8b5431bb6c",
+          "branch": "main",
+          "revision": "f9f1e926a56f95da1101b040e68684538b0638bd",
           "version": null
         }
       }
