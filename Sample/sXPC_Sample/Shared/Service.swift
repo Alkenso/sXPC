@@ -13,11 +13,22 @@ public struct Request: Equatable, Codable {
     public var processUID: uid_t
     public var processPID: pid_t
     public var processPath: URL
+    
+    public init(processUID: uid_t, processPID: pid_t, processPath: URL) {
+        self.processUID = processUID
+        self.processPID = processPID
+        self.processPath = processPath
+    }
 }
 
 public struct Response: Equatable, Codable {
     public var allow: Bool
     public var cache: Bool
+    
+    public init(allow: Bool, cache: Bool) {
+        self.allow = allow
+        self.cache = cache
+    }
 }
 
 public protocol Service {
@@ -39,7 +50,7 @@ public func CreateServiceXPCListener(listener: NSXPCListener) -> XPCListener<Ser
 // MARK: - AuthorizationProvider XPC support
 
 @objc(ServiceXPC)
-private protocol ServiceXPC {
+protocol ServiceXPC {
     func perform(_ request: Request.XPC, reply: @escaping (Response.XPC) -> Void)
 }
 
@@ -71,13 +82,13 @@ private func CreateServiceXPCInterface() -> XPCInterface<Service, ServiceXPC> {
 
 // MARK: XPC Request
 
-private extension Request {
+extension Request {
     typealias XPC = RequestXPC
     var xpcValue: XPC { XPC(value: self) }
 }
 
 @objc(RequestXPC)
-private class RequestXPC: NSObject, NSSecureCoding {
+class RequestXPC: NSObject, NSSecureCoding {
     typealias Wrapped = Request
     let value: Wrapped
 
@@ -102,13 +113,13 @@ private class RequestXPC: NSObject, NSSecureCoding {
 
 // MARK: XPC Response
 
-private extension Response {
+extension Response {
     typealias XPC = ResponseXPC
     var xpcValue: XPC { XPC(value: self) }
 }
 
 @objc(ResponseXPC)
-private class ResponseXPC: NSObject, NSSecureCoding {
+class ResponseXPC: NSObject, NSSecureCoding {
     typealias Wrapped = Response
     let value: Wrapped
 

@@ -6,21 +6,26 @@
 //
 
 import Cocoa
+import Shared
+
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
-
     @IBOutlet var window: NSWindow!
 
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
+        let connection = CreateServiceXPCConnection(connection: NSXPCConnection(serviceName: "com.alkenso.XPCService"))
+        connection.resume()
+
+        let proxy = connection.remoteObjectProxy { error in
+            print(error)
+        }
+
+        let request = Request(processUID: getuid(), processPID: getpid(), processPath: Bundle.main.executableURL!)
+        proxy.perform(request) { response in
+            print(response)
+        }
     }
-
-    func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
-    }
-
-
 }
 

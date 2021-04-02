@@ -7,17 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A40E359426177EAF0034EAF7 /* sXPC in Frameworks */ = {isa = PBXBuildFile; productRef = A40E359326177EAF0034EAF7 /* sXPC */; };
+		A40E35A6261783060034EAF7 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40E35A5261783060034EAF7 /* main.swift */; };
 		A4FA594D26177CFB005A5A11 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4FA594C26177CFB005A5A11 /* AppDelegate.swift */; };
 		A4FA594F26177CFD005A5A11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A4FA594E26177CFD005A5A11 /* Assets.xcassets */; };
 		A4FA595226177CFD005A5A11 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A4FA595026177CFD005A5A11 /* MainMenu.xib */; };
-		A4FA596226177D0C005A5A11 /* XPCService.m in Sources */ = {isa = PBXBuildFile; fileRef = A4FA596126177D0C005A5A11 /* XPCService.m */; };
-		A4FA596426177D0C005A5A11 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A4FA596326177D0C005A5A11 /* main.m */; };
 		A4FA596826177D0C005A5A11 /* XPCService.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = A4FA595D26177D0C005A5A11 /* XPCService.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A4FA597826177D21005A5A11 /* Shared.h in Headers */ = {isa = PBXBuildFile; fileRef = A4FA597626177D21005A5A11 /* Shared.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A4FA597B26177D21005A5A11 /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4FA597426177D21005A5A11 /* Shared.framework */; };
 		A4FA597C26177D21005A5A11 /* Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A4FA597426177D21005A5A11 /* Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A4FA598426177D31005A5A11 /* Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4FA598326177D31005A5A11 /* Service.swift */; };
-		A4FA599026177D6B005A5A11 /* sXPC in Frameworks */ = {isa = PBXBuildFile; productRef = A4FA598F26177D6B005A5A11 /* sXPC */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +62,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A40E35A5261783060034EAF7 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		A4FA594926177CFB005A5A11 /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4FA594C26177CFB005A5A11 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A4FA594E26177CFD005A5A11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -70,10 +70,6 @@
 		A4FA595326177CFD005A5A11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A4FA595426177CFD005A5A11 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		A4FA595D26177D0C005A5A11 /* XPCService.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = XPCService.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
-		A4FA595F26177D0C005A5A11 /* XPCServiceProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XPCServiceProtocol.h; sourceTree = "<group>"; };
-		A4FA596026177D0C005A5A11 /* XPCService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XPCService.h; sourceTree = "<group>"; };
-		A4FA596126177D0C005A5A11 /* XPCService.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XPCService.m; sourceTree = "<group>"; };
-		A4FA596326177D0C005A5A11 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		A4FA596526177D0C005A5A11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A4FA597426177D21005A5A11 /* Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4FA597626177D21005A5A11 /* Shared.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Shared.h; sourceTree = "<group>"; };
@@ -101,7 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A4FA599026177D6B005A5A11 /* sXPC in Frameworks */,
+				A40E359426177EAF0034EAF7 /* sXPC in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,10 +140,7 @@
 		A4FA595E26177D0C005A5A11 /* XPCService */ = {
 			isa = PBXGroup;
 			children = (
-				A4FA595F26177D0C005A5A11 /* XPCServiceProtocol.h */,
-				A4FA596026177D0C005A5A11 /* XPCService.h */,
-				A4FA596126177D0C005A5A11 /* XPCService.m */,
-				A4FA596326177D0C005A5A11 /* main.m */,
+				A40E35A5261783060034EAF7 /* main.swift */,
 				A4FA596526177D0C005A5A11 /* Info.plist */,
 			);
 			path = XPCService;
@@ -240,7 +233,7 @@
 			);
 			name = Shared;
 			packageProductDependencies = (
-				A4FA598F26177D6B005A5A11 /* sXPC */,
+				A40E359326177EAF0034EAF7 /* sXPC */,
 			);
 			productName = Shared;
 			productReference = A4FA597426177D21005A5A11 /* Shared.framework */;
@@ -260,6 +253,7 @@
 					};
 					A4FA595C26177D0C005A5A11 = {
 						CreatedOnToolsVersion = 12.3;
+						LastSwiftMigration = 1230;
 					};
 					A4FA597326177D21005A5A11 = {
 						CreatedOnToolsVersion = 12.3;
@@ -277,7 +271,7 @@
 			);
 			mainGroup = A4FA593E26177CD8005A5A11;
 			packageReferences = (
-				A4FA598926177D63005A5A11 /* XCRemoteSwiftPackageReference "sXPC" */,
+				A40E359226177EAF0034EAF7 /* XCRemoteSwiftPackageReference "sXPC" */,
 			);
 			productRefGroup = A4FA594A26177CFB005A5A11 /* Products */;
 			projectDirPath = "";
@@ -329,8 +323,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A4FA596426177D0C005A5A11 /* main.m in Sources */,
-				A4FA596226177D0C005A5A11 /* XPCService.m in Sources */,
+				A40E35A6261783060034EAF7 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -376,12 +369,14 @@
 		A4FA594326177CD8005A5A11 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 			};
 			name = Debug;
 		};
 		A4FA594426177CD8005A5A11 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 			};
 			name = Release;
 		};
@@ -449,7 +444,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -520,7 +514,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alkenso.App;
@@ -588,7 +581,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = XPCService/Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -596,6 +593,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -649,13 +648,18 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = XPCService/Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alkenso.XPCService;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -725,7 +729,6 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -801,7 +804,6 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alkenso.Shared;
@@ -858,6 +860,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		A40E359226177EAF0034EAF7 /* XCRemoteSwiftPackageReference "sXPC" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alkenso/sXPC.git";
+			requirement = {
+				kind = revision;
+				revision = af383a6399fcc13029f12448de857b8b5431bb6c;
+			};
+		};
 		A4FA598926177D63005A5A11 /* XCRemoteSwiftPackageReference "sXPC" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alkenso/sXPC.git";
@@ -869,9 +879,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A4FA598F26177D6B005A5A11 /* sXPC */ = {
+		A40E359326177EAF0034EAF7 /* sXPC */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A4FA598926177D63005A5A11 /* XCRemoteSwiftPackageReference "sXPC" */;
+			package = A40E359226177EAF0034EAF7 /* XCRemoteSwiftPackageReference "sXPC" */;
 			productName = sXPC;
 		};
 		A4FA599326177D8A005A5A11 /* sXPC */ = {
