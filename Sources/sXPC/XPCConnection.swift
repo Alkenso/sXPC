@@ -45,7 +45,6 @@ public class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionPro
         return _proxyConvertion(proxy)
     }
     
-    @available(OSX 10.11, *)
     public func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface {
         let proxy = _connection.synchronousRemoteObjectProxyWithErrorHandler(handler)
         return _proxyConvertion(proxy)
@@ -134,7 +133,6 @@ public protocol XPCConnectionProtocol: AnyObject {
     var interruptionHandler: (() -> Void)? { get set }
     
     func remoteObjectProxy(withErrorHandler handler: ((Error) -> Void)?) -> RemoteInterface
-    @available(OSX 10.11, *)
     func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface
     func resume()
     func suspend()
@@ -161,7 +159,7 @@ public class AnyXPCConnection<RemoteInterface, ExportedInterface>: XPCConnection
     private let _invalidationHandler: GetSet<(() -> Void)?>
     private let _interruptionHandler: GetSet<(() -> Void)?>
     private let _remoteObjectProxy: (((Error) -> Void)?) -> RemoteInterface
-    private let _synchronousRemoteObjectProxy: ((@escaping (Error) -> Void) -> RemoteInterface)!
+    private let _synchronousRemoteObjectProxy: ((@escaping (Error) -> Void) -> RemoteInterface)
     private let _resume: () -> Void
     private let _suspend: () -> Void
     private let _invalidate: () -> Void
@@ -172,11 +170,7 @@ public class AnyXPCConnection<RemoteInterface, ExportedInterface>: XPCConnection
         _invalidationHandler = .init(connection, \.invalidationHandler)
         _interruptionHandler = .init(connection, \.interruptionHandler)
         _remoteObjectProxy = connection.remoteObjectProxy
-        if #available(OSX 10.11, *) {
-            _synchronousRemoteObjectProxy = connection.synchronousRemoteObjectProxy
-        } else {
-            _synchronousRemoteObjectProxy = nil
-        }
+        _synchronousRemoteObjectProxy = connection.synchronousRemoteObjectProxy
         _resume = connection.resume
         _suspend = connection.suspend
         _invalidate = connection.invalidate
@@ -201,7 +195,6 @@ public class AnyXPCConnection<RemoteInterface, ExportedInterface>: XPCConnection
         _remoteObjectProxy(handler)
     }
     
-    @available(OSX 10.11, *)
     public func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface {
         _synchronousRemoteObjectProxy(handler)
     }
