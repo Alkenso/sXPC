@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "sXPC",
+        "repositoryURL": "https://github.com/Alkenso/sXPC.git",
+        "state": {
+          "branch": "main",
+          "revision": "fe8179bebbb0b48ceb63ff1a753c1c43bbff50e9",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
