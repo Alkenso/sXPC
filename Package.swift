@@ -10,7 +10,6 @@ let package = Package(
     ],
     products: [
         .library(name: "sXPC", targets: ["sXPC"]),
-        .library(name: "sXPCStatic", type: .static, targets: ["sXPC"]),
         .library(name: "sXPCDynamic", type: .dynamic, targets: ["sXPC"]),
     ],
     dependencies: [],

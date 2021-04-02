@@ -88,3 +88,41 @@ public extension NSCoder {
         }
     }
 }
+
+public extension NSXPCInterface {
+    private static let defaultClasses = NSSet(array: [
+        NSArray.self,
+        NSString.self,
+        NSValue.self,
+        NSNumber.self,
+        NSData.self,
+        NSDate.self,
+        NSNull.self,
+        NSURL.self,
+        NSUUID.self,
+        NSError.self,
+    ]) as Set
+    
+    
+    func extendClasses(_ classes: [Any], for sel: Selector, argumentIndex arg: Int, ofReply: Bool) {
+        let existingClasses = self.classes(for: sel, argumentIndex: arg, ofReply: ofReply)
+        let extendedClasses = existingClasses.union(Self.defaultClasses).union(NSSet(array: classes) as Set)
+        setClasses(extendedClasses, for: sel, argumentIndex: arg, ofReply: ofReply)
+    }
+    
+    enum SelectorArgument {
+        case byCopy(classes: [Any], argumentIndex: Int, ofReply: Bool)
+        case byProxy(interface: NSXPCInterface, argumentIndex: Int, ofReply: Bool)
+    }
+    
+    func extendSelector(_ sel: Selector, with arguments: [SelectorArgument]) {
+        for arg in arguments {
+            switch arg {
+            case let .byCopy(classes, index, ofReply):
+                extendClasses(classes, for: sel, argumentIndex: index, ofReply: ofReply)
+            case let .byProxy(interface, index, ofReply):
+                setInterface(interface, for: sel, argumentIndex: index, ofReply: ofReply)
+            }
+        }
+    }
+}
