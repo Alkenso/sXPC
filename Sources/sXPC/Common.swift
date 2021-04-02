@@ -78,10 +78,10 @@ public extension NSCoder {
         }
     }
     
-    func decodeCodable<T: Decodable>(ofType type: T.Type = T.self, forKey key: String = NSCoder.defaultCodablePayloadKey) -> T? {
+    func decodeCodable<T: Decodable>(_ type: T.Type = T.self, forKey key: String = NSCoder.defaultCodablePayloadKey) -> T? {
         guard let data = decodeObject(forKey: key) as? Data else { return nil }
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            return try JSONDecoder().decode(type, from: data)
         } catch {
             failWithError(error)
             return nil
