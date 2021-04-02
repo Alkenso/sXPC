@@ -65,3 +65,24 @@ public extension NSXPCConnection {
         unsafeBitCast(value(forKey: "auditToken").unsafelyUnwrapped, to: audit_token_t.self)
     }
 }
+
+public extension NSCoder {
+    func encodeCodable<T: Encodable>(_ value: T) {
+        do {
+            let data = try JSONEncoder().encode(value)
+            encode(data)
+        } catch {
+            failWithError(error)
+        }
+    }
+    
+    func decodeCodable<T: Decodable>() -> T? {
+        guard let data = decodeData() else { return nil }
+        do {
+            return try JSONDecoder().decode(T.self, from: data)
+        } catch {
+            failWithError(error)
+            return nil
+        }
+    }
+}
