@@ -49,7 +49,10 @@ public func CreateServiceXPCListener(listener: NSXPCListener) -> XPCListener<Ser
 
 // MARK: - AuthorizationProvider XPC support
 
-@objc(ServiceXPC)
+/// Underlying Obj-C compatible protocol used for NSXPCConnection.
+/// - note: If the file is not in the shared framework but linked to multiple targets, name it explicitly like @objc(CCServiceXPC).
+/// - warning: Leave it 'internal', not 'private', due to Swift-ObjC interoperability.
+@objc
 protocol ServiceXPC {
     func perform(_ request: Request.XPC, reply: @escaping (Response.XPC) -> Void)
 }
@@ -87,7 +90,8 @@ extension Request {
     var xpcValue: XPC { XPC(value: self) }
 }
 
-@objc(RequestXPC)
+/// Underlying Obj-C compatible class backed up 'Request' type NSXPCConnection.
+/// - note: If the file is not in the shared framework but linked to multiple targets, name it explicitly like @objc(CCRequestXPC).
 class RequestXPC: NSObject, NSSecureCoding {
     typealias Wrapped = Request
     let value: Wrapped
@@ -118,7 +122,6 @@ extension Response {
     var xpcValue: XPC { XPC(value: self) }
 }
 
-@objc(ResponseXPC)
 class ResponseXPC: NSObject, NSSecureCoding {
     typealias Wrapped = Response
     let value: Wrapped
