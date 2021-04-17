@@ -6,6 +6,11 @@ sXPC allows you to
 - have NSXPCIntegrace description in the single place
 - hide objective-c details, using pure Swift in the App
 
+### Library family
+You can also find Swift libraries for macOS / *OS development
+- [SwiftConvenience](https://github.com/Alkenso/SwiftConvenience): Swift common extensions and utilities used in everyday development
+- [sLaunchctl](https://github.com/Alkenso/sLaunchctl): Swift API to register and manage daemons and user-agents
+- [sMock](https://github.com/Alkenso/sMock): Swift unit-test mocking framework similar to gtest/gmock
 
 ## XPC service example
 _Note: full sample code resides in **Sample** folder_
