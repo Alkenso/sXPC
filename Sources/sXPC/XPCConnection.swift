@@ -27,42 +27,42 @@ import Foundation
 
 public class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProtocol {
     public var exportedObject: ExportedInterface? {
-        didSet { connection.exportedObject = exportedObject.flatMap(_exportedObjectConvertion) }
+        didSet { underlyingConnection.exportedObject = exportedObject.flatMap(_exportedObjectConvertion) }
     }
     
     public var invalidationHandler: (() -> Void)? {
-        get { connection.invalidationHandler }
-        set { connection.invalidationHandler = newValue }
+        get { underlyingConnection.invalidationHandler }
+        set { underlyingConnection.invalidationHandler = newValue }
     }
     
     public var interruptionHandler: (() -> Void)? {
-        get { connection.interruptionHandler }
-        set { connection.interruptionHandler = newValue }
+        get { underlyingConnection.interruptionHandler }
+        set { underlyingConnection.interruptionHandler = newValue }
     }
     
     public func remoteObjectProxy(withErrorHandler handler: ((Error) -> Void)?) -> RemoteInterface {
-        let proxy = connection.remoteObjectProxyWithErrorHandler { handler?($0) }
+        let proxy = underlyingConnection.remoteObjectProxyWithErrorHandler { handler?($0) }
         return _proxyConvertion(proxy)
     }
     
     public func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface {
-        let proxy = connection.synchronousRemoteObjectProxyWithErrorHandler(handler)
+        let proxy = underlyingConnection.synchronousRemoteObjectProxyWithErrorHandler(handler)
         return _proxyConvertion(proxy)
     }
     
     public func resume() {
-        connection.resume()
+        underlyingConnection.resume()
     }
     
     public func suspend() {
-        connection.suspend()
+        underlyingConnection.suspend()
     }
     
     public func invalidate() {
-        connection.invalidate()
+        underlyingConnection.invalidate()
     }
     
-    public let connection: NSXPCConnection
+    public let underlyingConnection: NSXPCConnection
     
     
     // MARK: Private
@@ -75,7 +75,7 @@ public class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionPro
         remoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>?,
         exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>?
     ) {
-        self.connection = connection
+        underlyingConnection = connection
         
         if let remoteInterface = remoteInterface {
             _proxyConvertion = remoteInterface.fromXPC
@@ -118,13 +118,13 @@ public extension XPCConnection {
     
     private func registerInStorage() {
         _queue.sync {
-            _currentConnectionStorage[ObjectIdentifier(connection)] = self
+            _currentConnectionStorage[ObjectIdentifier(underlyingConnection)] = self
         }
     }
     
     private func underesterFromStorage() {
         _queue.sync {
-            _ = _currentConnectionStorage.removeValue(forKey: ObjectIdentifier(connection))
+            _ = _currentConnectionStorage.removeValue(forKey: ObjectIdentifier(underlyingConnection))
         }
     }
 }

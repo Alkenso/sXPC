@@ -31,7 +31,7 @@ public class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtoco
         exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>,
         remoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>?
     ) {
-        self.listener = listener
+        self.underlyingListener = listener
         _createConnection = {
             XPCConnection.listenerSide(connection: $0, serverInterface: exportedInterface, clientInterface: remoteInterface)
         }
@@ -51,18 +51,22 @@ public class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtoco
     public var verifyConnectionHandler: ((NSXPCConnection.SecurityInfo) -> Bool)?
     
     public func resume() {
-        listener.resume()
+        underlyingListener.resume()
     }
     
     public func suspend() {
-        listener.suspend()
+        underlyingListener.suspend()
     }
     
     public func invalidate() {
-        listener.invalidate()
+        underlyingListener.invalidate()
     }
     
-    public let listener: NSXPCListener
+    public var endpoint: NSXPCListenerEndpoint {
+        underlyingListener.endpoint
+    }
+    
+    public let underlyingListener: NSXPCListener
     
     
     // MARK: Private
