@@ -15,7 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        let connection = CreateServiceXPCConnection(connection: NSXPCConnection(serviceName: "com.alkenso.XPCService"))
+        let connection = SampleXPCConnection(conneciton: NSXPCConnection(serviceName: "com.alkenso.XPCService"))
         connection.resume()
 
         let proxy = connection.remoteObjectProxy { error in

@@ -16,7 +16,7 @@ struct DummyService: Service {
 }
 
 
-let listener = CreateServiceXPCListener(listener: NSXPCListener.service())
+let listener = SampleXPCListener(listener: .service())
 listener.newConnectionHandler = {
     $0.exportedObject = DummyService()
     $0.resume()

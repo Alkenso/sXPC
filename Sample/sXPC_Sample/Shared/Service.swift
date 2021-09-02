@@ -38,12 +38,18 @@ public protocol Service {
 
 // MARK: - Service + XPC
 
-public func CreateServiceXPCConnection(connection: NSXPCConnection) -> XPCConnection<Service, Never> {
-    .connectionSide(connection: connection, serverInterface: CreateServiceXPCInterface())
+public typealias SampleXPCConnection = XPCConnection<Service, Never>
+public extension SampleXPCConnection {
+    convenience init(conneciton: NSXPCConnection) {
+        self.init(connectionSide: conneciton, serverInterface: .service)
+    }
 }
 
-public func CreateServiceXPCListener(listener: NSXPCListener) -> XPCListener<Service, Never> {
-    .init(listener: listener, exportedInterface: CreateServiceXPCInterface())
+public typealias SampleXPCListener = XPCListener<Service, Never>
+public extension SampleXPCListener {
+    convenience init(listener: NSXPCListener) {
+        self.init(listener: listener, exportedInterface: .service)
+    }
 }
 
 
@@ -57,29 +63,31 @@ protocol ServiceXPC {
     func perform(_ request: Request.XPC, reply: @escaping (Response.XPC) -> Void)
 }
 
-private func CreateServiceXPCInterface() -> XPCInterface<Service, ServiceXPC> {
-    class ToXPC: NSObject, ServiceXPC {
-        let instance: Service
-        init(_ instance: Service) { self.instance = instance }
-        func perform(_ request: Request.XPC, reply: @escaping (Response.XPC) -> Void) {
-            instance.perform(request.value, reply: { reply($0.xpcValue) })
-        }
+private extension XPCInterface {
+    static var service: XPCInterface<Service, ServiceXPC> {
+        let interface = NSXPCInterface(with: ServiceXPC.self)
+        interface.extendSelector(#selector(ServiceXPC.perform(_:reply:)), with: [
+            .byCopy(classes: [Request.XPC.self], argumentIndex: 0, ofReply: false),
+            .byCopy(classes: [Response.XPC.self], argumentIndex: 0, ofReply: true),
+        ])
+
+        return .init(interface: interface, toXPC: ServiceToXPC.init, fromXPC: ServiceFromXPC.init)
     }
+}
 
-    struct FromXPC: Service {
-        let proxy: ServiceXPC
-        func perform(_ request: Request, reply: @escaping (Response) -> Void) {
-            proxy.perform(request.xpcValue, reply: { reply($0.value) })
-        }
+private  class ServiceToXPC: NSObject, ServiceXPC {
+    let instance: Service
+    init(_ instance: Service) { self.instance = instance }
+    func perform(_ request: Request.XPC, reply: @escaping (Response.XPC) -> Void) {
+        instance.perform(request.value, reply: { reply($0.xpcValue) })
     }
+}
 
-    let interface = NSXPCInterface(with: ServiceXPC.self)
-    interface.extendSelector(#selector(ServiceXPC.perform(_:reply:)), with: [
-        .byCopy(classes: [Request.XPC.self], argumentIndex: 0, ofReply: false),
-        .byCopy(classes: [Response.XPC.self], argumentIndex: 0, ofReply: true),
-    ])
-
-    return XPCInterface(interface: interface, toXPC: ToXPC.init, fromXPC: FromXPC.init)
+private struct ServiceFromXPC: Service {
+    let proxy: ServiceXPC
+    func perform(_ request: Request, reply: @escaping (Response) -> Void) {
+        proxy.perform(request.xpcValue, reply: { reply($0.value) })
+    }
 }
 
 

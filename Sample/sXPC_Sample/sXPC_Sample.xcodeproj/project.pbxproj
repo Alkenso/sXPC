@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A40E359426177EAF0034EAF7 /* sXPC in Frameworks */ = {isa = PBXBuildFile; productRef = A40E359326177EAF0034EAF7 /* sXPC */; };
 		A40E35A6261783060034EAF7 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40E35A5261783060034EAF7 /* main.swift */; };
 		A40E35BE261785890034EAF7 /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4FA597426177D21005A5A11 /* Shared.framework */; };
 		A40E35BF261785890034EAF7 /* Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A4FA597426177D21005A5A11 /* Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A4BEA14026E1177C000F1D3E /* sXPC in Frameworks */ = {isa = PBXBuildFile; productRef = A4BEA13F26E1177C000F1D3E /* sXPC */; };
 		A4FA594D26177CFB005A5A11 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4FA594C26177CFB005A5A11 /* AppDelegate.swift */; };
 		A4FA594F26177CFD005A5A11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A4FA594E26177CFD005A5A11 /* Assets.xcassets */; };
 		A4FA595226177CFD005A5A11 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A4FA595026177CFD005A5A11 /* MainMenu.xib */; };
@@ -83,6 +83,7 @@
 
 /* Begin PBXFileReference section */
 		A40E35A5261783060034EAF7 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		A4BEA13E26E11765000F1D3E /* sXPC */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sXPC; path = ../..; sourceTree = "<group>"; };
 		A4FA594926177CFB005A5A11 /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4FA594C26177CFB005A5A11 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A4FA594E26177CFD005A5A11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -117,7 +118,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A40E359426177EAF0034EAF7 /* sXPC in Frameworks */,
+				A4BEA14026E1177C000F1D3E /* sXPC in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,6 +128,7 @@
 		A4FA593E26177CD8005A5A11 = {
 			isa = PBXGroup;
 			children = (
+				A4BEA13E26E11765000F1D3E /* sXPC */,
 				A4FA594B26177CFB005A5A11 /* App */,
 				A4FA595E26177D0C005A5A11 /* XPCService */,
 				A4FA597526177D21005A5A11 /* Shared */,
@@ -254,7 +256,7 @@
 			);
 			name = Shared;
 			packageProductDependencies = (
-				A40E359326177EAF0034EAF7 /* sXPC */,
+				A4BEA13F26E1177C000F1D3E /* sXPC */,
 			);
 			productName = Shared;
 			productReference = A4FA597426177D21005A5A11 /* Shared.framework */;
@@ -292,7 +294,6 @@
 			);
 			mainGroup = A4FA593E26177CD8005A5A11;
 			packageReferences = (
-				A40E359226177EAF0034EAF7 /* XCRemoteSwiftPackageReference "sXPC" */,
 			);
 			productRefGroup = A4FA594A26177CFB005A5A11 /* Products */;
 			projectDirPath = "";
@@ -870,14 +871,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A40E359226177EAF0034EAF7 /* XCRemoteSwiftPackageReference "sXPC" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alkenso/sXPC.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		A4FA598926177D63005A5A11 /* XCRemoteSwiftPackageReference "sXPC" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alkenso/sXPC.git";
@@ -889,9 +882,8 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A40E359326177EAF0034EAF7 /* sXPC */ = {
+		A4BEA13F26E1177C000F1D3E /* sXPC */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A40E359226177EAF0034EAF7 /* XCRemoteSwiftPackageReference "sXPC" */;
 			productName = sXPC;
 		};
 		A4FA599326177D8A005A5A11 /* sXPC */ = {
