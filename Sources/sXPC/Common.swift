@@ -25,6 +25,9 @@
 import Foundation
 
 
+/// InterfaceXPC is underlying Obj-C compatible protocol used for NSXPCConnection.
+/// - note: If the file is not in the shared framework but linked to multiple targets, name it explicitly like @objc(ExplicitNameInterfaceXPC).
+/// - warning: Leave it 'internal', not 'private', due to Swift-ObjC interoperability.
 public struct XPCInterface<Interface, InterfaceXPC> {
     public let interface: NSXPCInterface
     let toXPC: (Interface) -> InterfaceXPC

@@ -31,13 +31,13 @@ public class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtoco
         exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>,
         remoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>?
     ) {
-        _listener = listener
+        self.listener = listener
         _createConnection = {
             XPCConnection.listenerSide(connection: $0, serverInterface: exportedInterface, clientInterface: remoteInterface)
         }
         
         _listenerDelegate.parent = self
-        _listener.delegate = _listenerDelegate
+        listener.delegate = _listenerDelegate
     }
     
     public convenience init<ExportedInterfaceXPC>(
@@ -51,21 +51,22 @@ public class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtoco
     public var verifyConnectionHandler: ((NSXPCConnection.SecurityInfo) -> Bool)?
     
     public func resume() {
-        _listener.resume()
+        listener.resume()
     }
     
     public func suspend() {
-        _listener.suspend()
+        listener.suspend()
     }
     
     public func invalidate() {
-        _listener.invalidate()
+        listener.invalidate()
     }
+    
+    public let listener: NSXPCListener
     
     
     // MARK: Private
     private let _listenerDelegate: ListenerDelegate = .init()
-    private let _listener: NSXPCListener
     private let _createConnection: (NSXPCConnection) -> XPCConnection<RemoteInterface, ExportedInterface>
 }
 
