@@ -90,6 +90,42 @@ public class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionPro
         } else {
             _exportedObjectConvertion = { _ in fatalError("Exported interface not set.") }
         }
+        
+        registerInStorage()
+    }
+    
+    deinit {
+        underesterFromStorage()
+    }
+}
+
+private let _queue = DispatchQueue(label: "XPCConnection.currentStorage.queue")
+private var _currentConnectionStorage: [ObjectIdentifier: AnyObject] = [:]
+
+public extension XPCConnection {
+    static var current: XPCConnection? {
+        _queue.sync {
+            guard let connection = NSXPCConnection.current() else { return nil }
+            guard let current = _currentConnectionStorage[ObjectIdentifier(connection)] else { return nil }
+            if let concreteCurrent = current as? Self {
+                return concreteCurrent
+            } else {
+                assertionFailure("Failed to cast \(current) connection to \(Self.self)")
+                return nil
+            }
+        }
+    }
+    
+    private func registerInStorage() {
+        _queue.sync {
+            _currentConnectionStorage[ObjectIdentifier(connection)] = self
+        }
+    }
+    
+    private func underesterFromStorage() {
+        _queue.sync {
+            _ = _currentConnectionStorage.removeValue(forKey: ObjectIdentifier(connection))
+        }
     }
 }
 
