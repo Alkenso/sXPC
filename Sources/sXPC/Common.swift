@@ -45,6 +45,16 @@ public struct XPCInterface<Interface, InterfaceXPC> {
     }
 }
 
+extension XPCInterface {
+    public static func direct(interface: NSXPCInterface) -> XPCInterface where Interface == InterfaceXPC {
+        Self(
+            interface: interface,
+            toXPC: { $0 },
+            fromXPC: { $0 }
+        )
+    }
+}
+
 public extension NSXPCConnection {
     struct SecurityInfo {
         public let auditToken: audit_token_t
@@ -76,8 +86,12 @@ public extension NSCoder {
         do {
             let data = try JSONEncoder().encode(value)
             encode(data, forKey: key)
-        } catch {
-            failWithError(error)
+        } catch let error as NSError {
+            NSException(
+                name: .invalidArchiveOperationException,
+                reason: "code = \(error.code), domain = \(error.domain), error = \(error.description)",
+                userInfo: error.userInfo
+            ).raise()
         }
     }
     
@@ -86,7 +100,6 @@ public extension NSCoder {
         do {
             return try JSONDecoder().decode(type, from: data)
         } catch {
-            failWithError(error)
             return nil
         }
     }
