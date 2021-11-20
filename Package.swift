@@ -10,10 +10,11 @@ let package = Package(
     ],
     products: [
         .library(name: "sXPC", targets: ["sXPC"]),
-        .library(name: "sXPCDynamic", type: .dynamic, targets: ["sXPC"]),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/Alkenso/SwiftConvenience.git", from: "0.0.3"),
+    ],
     targets: [
-        .target(name: "sXPC", dependencies: []),
+        .target(name: "sXPC", dependencies: ["SwiftConvenience"]),
     ]
 )
