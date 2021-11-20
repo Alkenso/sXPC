@@ -55,30 +55,6 @@ extension XPCInterface {
     }
 }
 
-public extension NSXPCConnection {
-    struct SecurityInfo {
-        public let auditToken: audit_token_t
-        public let auditSessionIdentifier: au_asid_t
-        public let processIdentifier: pid_t
-        public let effectiveUserIdentifier: uid_t
-        public let effectiveGroupIdentifier: gid_t
-    }
-    
-    var securityInfo: SecurityInfo {
-        SecurityInfo(
-            auditToken: privateAuditToken,
-            auditSessionIdentifier: auditSessionIdentifier,
-            processIdentifier: processIdentifier,
-            effectiveUserIdentifier: effectiveUserIdentifier,
-            effectiveGroupIdentifier: effectiveGroupIdentifier
-        )
-    }
-    
-    private var privateAuditToken: audit_token_t {
-        unsafeBitCast(value(forKey: "auditToken").unsafelyUnwrapped, to: audit_token_t.self)
-    }
-}
-
 public extension NSCoder {
     static let defaultCodablePayloadKey = "payload"
     

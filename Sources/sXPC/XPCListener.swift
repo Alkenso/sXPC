@@ -23,6 +23,7 @@
  */
 
 import Foundation
+import SwiftConvenience
 
 
 public class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol {
@@ -48,7 +49,7 @@ public class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtoco
     }
     
     public var newConnectionHandler: ((XPCConnection<RemoteInterface, ExportedInterface>) -> Bool)?
-    public var verifyConnectionHandler: ((NSXPCConnection.SecurityInfo) -> Bool)?
+    public var verifyConnectionHandler: ((audit_token_t) -> Bool)?
     
     public func resume() {
         underlyingListener.resume()
@@ -80,7 +81,7 @@ extension XPCListener {
         
         func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
             guard let parent = parent else { return false }
-            guard parent.verifyConnectionHandler?(newConnection.securityInfo) != false else { return false }
+            guard parent.verifyConnectionHandler?(newConnection.auditToken) != false else { return false }
             return parent.newConnectionHandler?(parent._createConnection(newConnection)) ?? false
         }
     }
@@ -91,7 +92,7 @@ public protocol XPCListenerProtocol: AnyObject {
     associatedtype RemoteInterface
     
     var newConnectionHandler: ((XPCConnection<RemoteInterface, ExportedInterface>) -> Bool)? { get set }
-    var verifyConnectionHandler: ((NSXPCConnection.SecurityInfo) -> Bool)? { get set }
+    var verifyConnectionHandler: ((audit_token_t) -> Bool)? { get set }
     
     func resume()
     func suspend()
@@ -109,7 +110,7 @@ public extension XPCListenerProtocol {
 
 public class AnyXPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol {
     private let _newConnectionHandler: GetSet<((XPCConnection<RemoteInterface, ExportedInterface>) -> Bool)?>
-    private let _verifyConnectionHandler: GetSet<((NSXPCConnection.SecurityInfo) -> Bool)?>
+    private let _verifyConnectionHandler: GetSet<((audit_token_t) -> Bool)?>
     private let _resume: () -> Void
     private let _suspend: () -> Void
     private let _invalidate: () -> Void
@@ -128,7 +129,7 @@ public class AnyXPCListener<ExportedInterface, RemoteInterface>: XPCListenerProt
         set { _newConnectionHandler.set(newValue) }
     }
     
-    public var verifyConnectionHandler: ((NSXPCConnection.SecurityInfo) -> Bool)? {
+    public var verifyConnectionHandler: ((audit_token_t) -> Bool)? {
         get { _verifyConnectionHandler.get() }
         set { _verifyConnectionHandler.set(newValue) }
     }
