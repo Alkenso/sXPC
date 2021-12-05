@@ -41,7 +41,7 @@ public protocol Service {
 public typealias SampleXPCConnection = XPCConnection<Service, Never>
 public extension SampleXPCConnection {
     convenience init(conneciton: NSXPCConnection) {
-        self.init(connectionSide: conneciton, serverInterface: .service)
+        self.init(.connection(conneciton), remoteInterface: .service)
     }
 }
 
