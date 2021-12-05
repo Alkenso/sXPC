@@ -26,53 +26,66 @@ import Foundation
 import SwiftConvenience
 
 
-public class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol {
-    public init<RemoteInterfaceXPC, ExportedInterfaceXPC>(
+extension XPCListener {
+    public convenience init<ExportedInterfaceXPC, RemoteInterfaceXPC>(
         listener: NSXPCListener,
         exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>,
-        remoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>?
+        remoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>
     ) {
-        self.underlyingListener = listener
-        _createConnection = {
-            XPCConnection.listenerSide(connection: $0, serverInterface: exportedInterface, clientInterface: remoteInterface)
+        self.init(listener: listener) {
+            XPCConnection(.connection($0), remoteInterface: remoteInterface, exportedInterface: exportedInterface)
         }
-        
-        _listenerDelegate.parent = self
-        listener.delegate = _listenerDelegate
     }
     
     public convenience init<ExportedInterfaceXPC>(
         listener: NSXPCListener,
         exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>
     ) where RemoteInterface == Never {
-        self.init(listener: listener, exportedInterface: exportedInterface, remoteInterface: Optional<XPCInterface<RemoteInterface, Never>>.none)
+        self.init(listener: listener) {
+            XPCConnection(.connection($0), exportedInterface: exportedInterface)
+        }
     }
+}
+
+public class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol {
+    public let native: NSXPCListener
     
     public var newConnectionHandler: ((XPCConnection<RemoteInterface, ExportedInterface>) -> Bool)?
+    
     public var verifyConnectionHandler: ((audit_token_t) -> Bool)?
     
     public func resume() {
-        underlyingListener.resume()
+        native.resume()
     }
     
     public func suspend() {
-        underlyingListener.suspend()
+        native.suspend()
     }
     
     public func invalidate() {
-        underlyingListener.invalidate()
+        native.invalidate()
     }
     
     public var endpoint: NSXPCListenerEndpoint {
-        underlyingListener.endpoint
+        native.endpoint
     }
-    
-    public let underlyingListener: NSXPCListener
     
     
     // MARK: Private
-    private let _listenerDelegate: ListenerDelegate = .init()
-    private let _createConnection: (NSXPCConnection) -> XPCConnection<RemoteInterface, ExportedInterface>
+    private let listenerDelegate = ListenerDelegate()
+    private let createConnection: (NSXPCConnection) -> XPCConnection<RemoteInterface, ExportedInterface>
+    
+    
+    private init(
+        listener: NSXPCListener,
+        createConnection: @escaping (NSXPCConnection) -> XPCConnection<RemoteInterface, ExportedInterface>
+    ) {
+        self.native = listener
+        self.createConnection = createConnection
+        
+        listenerDelegate.parent = self
+        native.delegate = listenerDelegate
+    }
 }
 
 extension XPCListener {
@@ -80,9 +93,18 @@ extension XPCListener {
         weak var parent: XPCListener? = nil
         
         func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
-            guard let parent = parent else { return false }
-            guard parent.verifyConnectionHandler?(newConnection.auditToken) != false else { return false }
-            return parent.newConnectionHandler?(parent._createConnection(newConnection)) ?? false
+            guard let parent = parent else {
+                return false
+            }
+            guard parent.verifyConnectionHandler?(newConnection.auditToken) != false else {
+                return false
+            }
+            guard let newConnectionHandler = parent.newConnectionHandler else {
+                return false
+            }
+            
+            let accepted = newConnectionHandler(parent.createConnection(newConnection))
+            return accepted
         }
     }
 }
@@ -91,7 +113,7 @@ public protocol XPCListenerProtocol: AnyObject {
     associatedtype ExportedInterface
     associatedtype RemoteInterface
     
-    var newConnectionHandler: ((XPCConnection<RemoteInterface, ExportedInterface>) -> Bool)? { get set }
+    var newConnectionHandler: ((XPCConnection<ExportedInterface, RemoteInterface>) -> Bool)? { get set }
     var verifyConnectionHandler: ((audit_token_t) -> Bool)? { get set }
     
     func resume()
@@ -109,7 +131,7 @@ public extension XPCListenerProtocol {
 }
 
 public class AnyXPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol {
-    private let _newConnectionHandler: GetSet<((XPCConnection<RemoteInterface, ExportedInterface>) -> Bool)?>
+    private let _newConnectionHandler: GetSet<((XPCConnection<ExportedInterface, RemoteInterface>) -> Bool)?>
     private let _verifyConnectionHandler: GetSet<((audit_token_t) -> Bool)?>
     private let _resume: () -> Void
     private let _suspend: () -> Void
@@ -124,7 +146,7 @@ public class AnyXPCListener<ExportedInterface, RemoteInterface>: XPCListenerProt
         _invalidate = listener.invalidate
     }
     
-    public var newConnectionHandler: ((XPCConnection<RemoteInterface, ExportedInterface>) -> Bool)? {
+    public var newConnectionHandler: ((XPCConnection<ExportedInterface, RemoteInterface>) -> Bool)? {
         get { _newConnectionHandler.get() }
         set { _newConnectionHandler.set(newValue) }
     }

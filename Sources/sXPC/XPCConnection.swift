@@ -23,73 +23,157 @@
  */
 
 import Foundation
+import SwiftConvenience
 
 
+/// Bidirectional XPC Connection
+extension XPCConnection {
+    public convenience init<RemoteInterfaceXPC, ExportedInterfaceXPC>(
+        _ type: XPCConnectionInit,
+        remoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>,
+        exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>
+    ) {
+        self.init(
+            type,
+            optionalRemoteInterface: remoteInterface,
+            optionalExportedInterface: exportedInterface
+        )
+    }
+    
+    public convenience init(
+        connection: NSXPCConnection,
+        exportedObjectConversion: @escaping ((ExportedInterface) -> Any),
+        proxyObjectConversion: @escaping ((Any) -> RemoteInterface)
+    ) {
+        self.init(
+            connection: connection,
+            optionalProxyObjectConversion: proxyObjectConversion,
+            optionalExportedObjectConversion: exportedObjectConversion
+        )
+    }
+}
+
+/// Unidirectional XPC Connection - Exported object only
+extension XPCConnection where RemoteInterface == Never {
+    public convenience init<ExportedInterfaceXPC>(
+        _ type: XPCConnectionInit,
+        exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>
+    ) {
+        self.init(
+            type,
+            optionalRemoteInterface: Optional<XPCInterface<RemoteInterface, Never>>.none,
+            optionalExportedInterface: exportedInterface
+        )
+    }
+    
+    public convenience init(
+        connection: NSXPCConnection,
+        exportedObjectConversion: @escaping ((ExportedInterface) -> Any)
+    ) {
+        self.init(
+            connection: connection,
+            optionalProxyObjectConversion: nil,
+            optionalExportedObjectConversion: exportedObjectConversion
+        )
+    }
+}
+
+/// Unidirectional XPC Connection - Remote object only
+extension XPCConnection where ExportedInterface == Never {
+    public convenience init<RemoteInterfaceXPC>(
+        _ type: XPCConnectionInit,
+        remoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>
+    ) {
+        self.init(
+            type,
+            optionalRemoteInterface: remoteInterface,
+            optionalExportedInterface: Optional<XPCInterface<ExportedInterface, Never>>.none
+        )
+    }
+    
+    public convenience init(
+        connection: NSXPCConnection,
+        proxyObjectConversion: @escaping ((Any) -> RemoteInterface)
+    ) {
+        self.init(
+            connection: connection,
+            optionalProxyObjectConversion: proxyObjectConversion,
+            optionalExportedObjectConversion: nil
+        )
+    }
+}
+
+/// XPCConnection is Swift typesafe wrapper around NSXPCConnection
+/// - Parameters
+///     - RemoteInterface: type of remote interface connection deals with. May be 'Never' if connection does not expected to use remote interface
+///     - ExportedInterface: type of exported interface connection deals with. May be 'Never' if connection does not expected to use exported object
 public class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProtocol {
     public var exportedObject: ExportedInterface? {
-        didSet { underlyingConnection.exportedObject = exportedObject.flatMap(_exportedObjectConvertion) }
-    }
-    
-    public var invalidationHandler: (() -> Void)? {
-        get { underlyingConnection.invalidationHandler }
-        set { underlyingConnection.invalidationHandler = newValue }
-    }
-    
-    public var interruptionHandler: (() -> Void)? {
-        get { underlyingConnection.interruptionHandler }
-        set { underlyingConnection.interruptionHandler = newValue }
+        didSet { native.exportedObject = exportedObject.flatMap(exportedObjectConversion) }
     }
     
     public func remoteObjectProxy(withErrorHandler handler: ((Error) -> Void)?) -> RemoteInterface {
-        let proxy = underlyingConnection.remoteObjectProxyWithErrorHandler { handler?($0) }
-        return _proxyConvertion(proxy)
+        let proxy = native.remoteObjectProxyWithErrorHandler { handler?($0) }
+        return proxyObjectConversion(proxy)
     }
     
     public func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface {
-        let proxy = underlyingConnection.synchronousRemoteObjectProxyWithErrorHandler(handler)
-        return _proxyConvertion(proxy)
+        let proxy = native.synchronousRemoteObjectProxyWithErrorHandler(handler)
+        return proxyObjectConversion(proxy)
+    }
+    
+    public var invalidationHandler: (() -> Void)? {
+        get { native.invalidationHandler }
+        set { native.invalidationHandler = newValue }
+    }
+    
+    public var interruptionHandler: (() -> Void)? {
+        get { native.interruptionHandler }
+        set { native.interruptionHandler = newValue }
     }
     
     public func resume() {
-        underlyingConnection.resume()
+        native.resume()
     }
     
     public func suspend() {
-        underlyingConnection.suspend()
+        native.suspend()
     }
     
     public func invalidate() {
-        underlyingConnection.invalidate()
+        native.invalidate()
     }
     
-    public let underlyingConnection: NSXPCConnection
+    public let native: NSXPCConnection
     
     
     // MARK: Private
-    private let _proxyConvertion: (Any) -> RemoteInterface
-    private let _exportedObjectConvertion: (ExportedInterface) -> Any
+    private let exportedObjectConversion: (ExportedInterface) -> Any
+    private let proxyObjectConversion: (Any) -> RemoteInterface
     
     
-    private init<RemoteInterfaceXPC, ExportedInterfaceXPC>(
-        connection: NSXPCConnection,
-        remoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>?,
-        exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>?
+    private convenience init<ExportedInterfaceXPC, RemoteInterfaceXPC>(
+        _ endpoint: XPCConnectionInit,
+        optionalRemoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>?,
+        optionalExportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>?
     ) {
-        underlyingConnection = connection
-        
-        if let remoteInterface = remoteInterface {
-            _proxyConvertion = remoteInterface.fromXPC
-            connection.remoteObjectInterface = remoteInterface.interface
-        } else {
-            _proxyConvertion = { _ in fatalError("Remote interface not set.") }
-        }
-        
-        if let exportedInterface = exportedInterface {
-            connection.exportedInterface = exportedInterface.interface
-            _exportedObjectConvertion = { exportedInterface.toXPC($0) }
-        } else {
-            _exportedObjectConvertion = { _ in fatalError("Exported interface not set.") }
-        }
+        self.init(
+            connection: endpoint.connection,
+            optionalProxyObjectConversion: optionalRemoteInterface?.fromXPC,
+            optionalExportedObjectConversion: optionalExportedInterface?.toXPC
+        )
+        native.exportedInterface = optionalExportedInterface?.interface
+        native.remoteObjectInterface = optionalRemoteInterface?.interface
+    }
+    
+    private init(
+        connection: NSXPCConnection,
+        optionalProxyObjectConversion: ((Any) -> RemoteInterface)?,
+        optionalExportedObjectConversion: ((ExportedInterface) -> Any)?
+    ) {
+        native = connection
+        exportedObjectConversion = optionalExportedObjectConversion ?? { _ in fatalError("Exported interface not set.") }
+        proxyObjectConversion = optionalProxyObjectConversion ?? { _ in fatalError("Remote interface not set.") }
         
         registerInStorage()
     }
@@ -99,116 +183,77 @@ public class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionPro
     }
 }
 
-private let _queue = DispatchQueue(label: "XPCConnection.currentStorage.queue")
-private var _currentConnectionStorage: [ObjectIdentifier: AnyObject] = [:]
+private var _currentConnectionStorage = Synchronized<[ObjectIdentifier: AnyObject]>(.serial)
 
-public extension XPCConnection {
-    static var current: XPCConnection? {
-        _queue.sync {
-            guard let connection = NSXPCConnection.current() else { return nil }
-            guard let current = _currentConnectionStorage[ObjectIdentifier(connection)] else { return nil }
-            if let concreteCurrent = current as? Self {
-                return concreteCurrent
-            } else {
-                assertionFailure("Failed to cast \(current) connection to \(Self.self)")
-                return nil
-            }
+extension XPCConnection {
+    public static func current() throws -> XPCConnection {
+        guard let connection = NSXPCConnection.current() else {
+            throw CommonError.unwrapNil("NSXPCConnection.current")
+        }
+        guard let current = _currentConnectionStorage.read({ $0[ObjectIdentifier(connection)] }) else {
+            throw CommonError.notFound(what: "NSXPCConnection", where: "currentConnectionStorage")
+        }
+        if let concreteCurrent = current as? Self {
+            return concreteCurrent
+        } else {
+            assertionFailure("Failed to cast \(current) connection to \(Self.self)")
+            throw CommonError.cast(current, to: Self.self)
         }
     }
     
     private func registerInStorage() {
-        _queue.sync {
-            _currentConnectionStorage[ObjectIdentifier(underlyingConnection)] = self
-        }
+        _currentConnectionStorage.writeAsync { $0[ObjectIdentifier(self.native)] = self }
     }
     
     private func underesterFromStorage() {
-        _queue.sync {
-            _ = _currentConnectionStorage.removeValue(forKey: ObjectIdentifier(underlyingConnection))
-        }
+        _currentConnectionStorage.writeAsync { $0.removeValue(forKey: ObjectIdentifier(self.native)) }
     }
 }
 
-public extension XPCConnection {
-    convenience init<RemoteInterfaceXPC, ExportedInterfaceXPC>(
-        connectionSide connection: NSXPCConnection,
-        serverInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>,
-        clientInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>?
-    ) {
-        self.init(connection: connection, remoteInterface: serverInterface, exportedInterface: clientInterface)
-    }
-    
-    static func connectionSide<RemoteInterfaceXPC, ExportedInterfaceXPC>(
-        connection: NSXPCConnection,
-        serverInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>,
-        clientInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>?
-    ) -> XPCConnection {
-        XPCConnection(connectionSide: connection, serverInterface: serverInterface, clientInterface: clientInterface)
-    }
-    
-    convenience init<RemoteInterfaceXPC>(
-        connectionSide connection: NSXPCConnection,
-        serverInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>
-    ) {
-        self.init(connectionSide: connection, serverInterface: serverInterface, clientInterface: Optional<XPCInterface<ExportedInterface, Never>>.none)
-    }
-    
-    static func connectionSide<RemoteInterfaceXPC>(
-        connection: NSXPCConnection,
-        serverInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>
-    ) -> XPCConnection where ExportedInterface == Never {
-        XPCConnection(connectionSide: connection, serverInterface: serverInterface)
-    }
-    
-    
-    convenience init<RemoteInterfaceXPC, ExportedInterfaceXPC>(
-        listenerSide connection: NSXPCConnection,
-        serverInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>,
-        clientInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>?
-    ) {
-        self.init(connection: connection, remoteInterface: clientInterface, exportedInterface: serverInterface)
-    }
-    
-    static func listenerSide<RemoteInterfaceXPC, ExportedInterfaceXPC>(
-        connection: NSXPCConnection,
-        serverInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>,
-        clientInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>?
-    ) -> XPCConnection {
-        XPCConnection(listenerSide: connection, serverInterface: serverInterface, clientInterface: clientInterface)
-    }
-    
-    convenience init<ExportedInterfaceXPC>(
-        listenerSide connection: NSXPCConnection,
-        serverInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>
-    ) {
-        self.init(listenerSide: connection, serverInterface: serverInterface, clientInterface: Optional<XPCInterface<RemoteInterface, Never>>.none)
-    }
-    
-    static func listenerSide<ExportedInterfaceXPC>(
-        connection: NSXPCConnection,
-        serverInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>
-    ) -> XPCConnection where RemoteInterface == Never {
-        XPCConnection(listenerSide: connection, serverInterface: serverInterface)
+
+// MARK: - XPCConnection Auxiliary
+
+public enum XPCConnectionInit {
+    case service(_ name: String)
+    case machService(_ name: String, options: NSXPCConnection.Options)
+    case listenerEndpoint(_ listenerEndpoint: NSXPCListenerEndpoint)
+    case connection(_ connection: NSXPCConnection)
+}
+
+extension XPCConnectionInit {
+    public var connection: NSXPCConnection {
+        switch self {
+        case .service(let name):
+            return NSXPCConnection(serviceName: name)
+        case .machService(let name, let options):
+            return NSXPCConnection(machServiceName: name, options: options)
+        case .listenerEndpoint(let listenerEndpoint):
+            return NSXPCConnection(listenerEndpoint: listenerEndpoint)
+        case .connection(let connection):
+            return connection
+        }
     }
 }
 
 public protocol XPCConnectionProtocol: AnyObject {
-    associatedtype RemoteInterface
     associatedtype ExportedInterface
+    associatedtype RemoteInterface
     
     var exportedObject: ExportedInterface? { get set }
-    var invalidationHandler: (() -> Void)? { get set }
-    var interruptionHandler: (() -> Void)? { get set }
     
     func remoteObjectProxy(withErrorHandler handler: ((Error) -> Void)?) -> RemoteInterface
     func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface
+    
+    var invalidationHandler: (() -> Void)? { get set }
+    var interruptionHandler: (() -> Void)? { get set }
+    
     func resume()
     func suspend()
     func invalidate()
 }
 
-public extension XPCConnectionProtocol {
-    var remoteObjectProxy: RemoteInterface {
+extension XPCConnectionProtocol {
+    public var remoteObjectProxy: RemoteInterface {
         remoteObjectProxy(withErrorHandler: nil)
     }
 }
@@ -249,6 +294,14 @@ public class AnyXPCConnection<RemoteInterface, ExportedInterface>: XPCConnection
         set { _exportedObject.set(newValue) }
     }
     
+    public func remoteObjectProxy(withErrorHandler handler: ((Error) -> Void)?) -> RemoteInterface {
+        _remoteObjectProxy(handler)
+    }
+    
+    public func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface {
+        _synchronousRemoteObjectProxy(handler)
+    }
+    
     public var invalidationHandler: (() -> Void)? {
         get { _invalidationHandler.get() }
         set { _invalidationHandler.set(newValue) }
@@ -257,14 +310,6 @@ public class AnyXPCConnection<RemoteInterface, ExportedInterface>: XPCConnection
     public var interruptionHandler: (() -> Void)? {
         get { _interruptionHandler.get() }
         set { _interruptionHandler.set(newValue) }
-    }
-    
-    public func remoteObjectProxy(withErrorHandler handler: ((Error) -> Void)?) -> RemoteInterface {
-        _remoteObjectProxy(handler)
-    }
-    
-    public func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface {
-        _synchronousRemoteObjectProxy(handler)
     }
     
     public func resume() {
