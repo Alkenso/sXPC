@@ -47,7 +47,7 @@ extension XPCListener {
     }
 }
 
-public class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol {
+open class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol {
     public let native: NSXPCListener
     
     public var newConnectionHandler: ((XPCConnection<RemoteInterface, ExportedInterface>) -> Bool)?

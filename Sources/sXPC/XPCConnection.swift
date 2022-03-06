@@ -107,7 +107,7 @@ extension XPCConnection where ExportedInterface == Never {
 /// - Parameters
 ///     - RemoteInterface: type of remote interface connection deals with. May be 'Never' if connection does not expected to use remote interface
 ///     - ExportedInterface: type of exported interface connection deals with. May be 'Never' if connection does not expected to use exported object
-public class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProtocol {
+open class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProtocol {
     public var exportedObject: ExportedInterface? {
         didSet { native.exportedObject = exportedObject.flatMap(exportedObjectConversion) }
     }
