@@ -28,20 +28,20 @@ import SwiftConvenience
 
 extension XPCListener {
     public convenience init<ExportedInterfaceXPC, RemoteInterfaceXPC>(
-        listener: NSXPCListener,
+        _ type: XPCListenerInit,
         exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>,
         remoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>
     ) {
-        self.init(listener: listener) {
+        self.init(type) {
             XPCConnection(.connection($0), remoteInterface: remoteInterface, exportedInterface: exportedInterface)
         }
     }
     
     public convenience init<ExportedInterfaceXPC>(
-        listener: NSXPCListener,
+        _ type: XPCListenerInit,
         exportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>
     ) where RemoteInterface == Never {
-        self.init(listener: listener) {
+        self.init(type) {
             XPCConnection(.connection($0), exportedInterface: exportedInterface)
         }
     }
@@ -77,10 +77,10 @@ open class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol 
     
     
     private init(
-        listener: NSXPCListener,
+        _ type: XPCListenerInit,
         createConnection: @escaping (NSXPCConnection) -> XPCConnection<RemoteInterface, ExportedInterface>
     ) {
-        self.native = listener
+        self.native = type.native
         self.createConnection = createConnection
         
         listenerDelegate.parent = self
@@ -109,6 +109,13 @@ extension XPCListener {
     }
 }
 
+public enum XPCListenerInit {
+    case service
+    case machService(_ name: String)
+    case anonymous
+    case listener(NSXPCListener)
+}
+
 public protocol XPCListenerProtocol: AnyObject {
     associatedtype ExportedInterface
     associatedtype RemoteInterface
@@ -121,6 +128,20 @@ public protocol XPCListenerProtocol: AnyObject {
     func invalidate()
 }
 
+extension XPCListenerInit {
+    public var native: NSXPCListener {
+        switch self {
+        case .service:
+            return .service()
+        case .machService(let name):
+            return .init(machServiceName: name)
+        case .anonymous:
+            return .anonymous()
+        case .listener(let listener):
+            return listener
+        }
+    }
+}
 
 // MARK: - AnyXPCListener
 
