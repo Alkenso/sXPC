@@ -12,9 +12,16 @@ let package = Package(
         .library(name: "sXPC", targets: ["sXPC"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Alkenso/SwiftConvenience.git", from: "0.0.3"),
+        .package(url: "https://github.com/Alkenso/SwiftConvenience.git", from: "0.0.14"),
     ],
     targets: [
-        .target(name: "sXPC", dependencies: ["SwiftConvenience"]),
+        .target(
+            name: "sXPC",
+            dependencies: ["SwiftConvenience"]
+        ),
+        .testTarget(
+            name: "sXPCTests",
+            dependencies: ["sXPC", "SwiftConvenienceTestUtils"]
+        ),
     ]
 )
