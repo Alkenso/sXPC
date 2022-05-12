@@ -64,7 +64,7 @@ public class XPCTransportServer {
     }
     
     private func handleNewConnection(_ transport: XPCTransportConnection) {
-        let id = transport.id
+        let id = transport.peerID
         transport.queue = queue
         transport.stateHandler = { [weak self] connectionState in
             guard let self = self else { return }
@@ -102,20 +102,36 @@ public class XPCTransportListener {
     }
     
     public func activate() {
-        listener.newConnectionHandler = { [weak self] connection in
-            guard let self = self, let newConnectionHandler = self.newConnectionHandler else {
-                return false
-            }
-            self.queue.async {
-                newConnectionHandler(XPCTransportConnection(connection: connection))
-            }
-            
+        listener.newConnectionHandler = { [weak self] in
+            guard self?.newConnectionHandler != nil else { return false }
+            self?.handleNewConnection($0)
             return true
         }
+        
         listener.resume()
     }
     
     public func invalidate() {
         listener.invalidate()
+    }
+    
+    private func handleNewConnection(_ connection: XPCConnection<TransportXPC, TransportXPC>) {
+        // Activate transport and wait till it become connected or invalid
+        // Connected transport on listener side remains 'inactivated' and
+        // may can be setup, activated and used
+        
+        let transport = XPCTransportConnection(connection: connection)
+        transport.stateHandler = { [weak self] in
+            switch $0 {
+            case .connected:
+                transport.stateHandler = nil
+                self?.newConnectionHandler?(transport)
+            case .invalidated:
+                transport.stateHandler = nil
+            case .connecting:
+                break
+            }
+        }
+        transport.activate()
     }
 }

@@ -125,7 +125,7 @@ class XPCTransportTests: XCTestCase {
         }
         
         let expClientReceive = expectation(description: "receiveDataHandler")
-        client.receiveDataHandler = .decode(String.self) { [id = client.id] peer, data, reply in
+        client.receiveDataHandler = .decode(String.self) { [id = client.peerID] peer, data, reply in
             XCTAssertEqual(peer, id)
             XCTAssertEqual(data, "hello from server")
             reply(.success(.encode("hello from client")))
