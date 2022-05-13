@@ -158,7 +158,7 @@ public class XPCTransportConnection {
         }
         replyEx.processingQueue = connectionQueue
         replyEx.finalQueue = nil
-        receiveDataHandler.handler(queue, peerID, data, replyEx)
+        receiveDataHandler.handler(queue, XPCTransportPeer(id: peerID, userInfo: peerUserInfo), data, replyEx)
     }
     
     private func updateState(_ state: ConnectionState) {
@@ -218,24 +218,33 @@ public class XPCTransportConnection {
         guard !isClient, state != .connected, data.starts(with: clientHello) else {
             return false
         }
-        guard let realPeerID = data.dropFirst(clientHello.count).pod(exactly: uuid_t.self).flatMap(UUID.init(uuid:)) else {
+        
+        do {
+            var reader = BinaryReader(data: data)
+            try reader.skip(clientHello.count)
+            peerID = UUID(uuid: try reader.read())
+            
+            peerUserInfo = try reader.read(maxCount: .max)
+            updateState(.connected)
+            
+            connection.suspend()
+            serverActivation = connection.resume
+            reply(serverHello, nil)
+        } catch {
             reply(nil, CommonError.invalidArgument(
                 arg: "Client Hello",
                 invalidValue: data,
-                description: "Failed to parse peer ID from client hello (count = \(data.count))")
+                description: "Failed to parse client hello from data (count = \(data.count)). Error: \(error)")
             )
-            return true
         }
         
-        peerID = realPeerID
-        peerUserInfo = data.dropFirst(clientHello.count).dropFirst(MemoryLayout<uuid_t>.stride)
-        updateState(.connected)
-        
-        connection.suspend()
-        serverActivation = connection.resume
-        reply(serverHello, nil)
-        
         return true
+    }
+}
+
+extension XPCTransportConnection {
+    public var peerInfo: XPCTransportPeer {
+        XPCTransportPeer(id: peerID, userInfo: peerUserInfo)
     }
 }
 

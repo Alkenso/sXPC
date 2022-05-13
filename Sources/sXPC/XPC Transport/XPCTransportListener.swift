@@ -37,7 +37,7 @@ public class XPCTransportServer {
     }
     
     public var queue = DispatchQueue(label: "XPCTransportServer.queue")
-    public var connectionOpened: ((UUID) -> Void)?
+    public var connectionOpened: ((XPCTransportPeer) -> Void)?
     public var connectionClosed: ((UUID) -> Void)?
     public var receiveDataHandler: XPCTransportReceiveDataHandler?
     public var verifyConnectionHandler: ((audit_token_t) -> Bool)? {
@@ -66,11 +66,11 @@ public class XPCTransportServer {
     private func handleNewConnection(_ transport: XPCTransportConnection) {
         let id = transport.peerID
         transport.queue = queue
-        transport.stateHandler = { [weak self] connectionState in
-            guard let self = self else { return }
+        transport.stateHandler = { [weak self, weak transport] connectionState in
+            guard let self = self, let transport = transport else { return }
             switch connectionState {
             case .connected:
-                self.connectionOpened?(id)
+                self.connectionOpened?(transport.peerInfo)
             case .invalidated:
                 self.connectionClosed?(id)
                 self.connections.writeAsync { $0.removeValue(forKey: id) }

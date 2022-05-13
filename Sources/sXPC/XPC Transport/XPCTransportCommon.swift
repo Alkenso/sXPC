@@ -114,22 +114,32 @@ private extension Optional where Wrapped == DispatchQueue {
 }
 
 
+public struct XPCTransportPeer: Hashable {
+    public var id: UUID
+    public var userInfo: Data
+    
+    public init(id: UUID, userInfo: Data) {
+        self.id = id
+        self.userInfo = userInfo
+    }
+}
+
 public struct XPCTransportReceiveDataHandler {
-    internal let handler: (DispatchQueue, UUID, Data, XPCReply) -> Void
+    internal let handler: (DispatchQueue, XPCTransportPeer, Data, XPCReply) -> Void
 }
 
 extension XPCTransportReceiveDataHandler {
-    public init(handler: @escaping (UUID, Data, XPCReply) -> Void) {
+    public init(handler: @escaping (XPCTransportPeer, Data, XPCReply) -> Void) {
         self.init { queue, id, data, reply in
             queue.async { handler(id, data, reply) }
         }
     }
     
-    public static func decode<T: Decodable>(_ type: T.Type, handler: @escaping (UUID, T, XPCReply) -> Void) -> Self {
+    public static func decode<T: Decodable>(_ type: T.Type, handler: @escaping (XPCTransportPeer, T, XPCReply) -> Void) -> Self {
         decode(type, decoder: { try XPCPayload.raw($0).decode(T.self) }, handler: handler)
     }
     
-    public static func decode<T: Decodable>(_ type: T.Type, decoder: @escaping (Data) throws -> T, handler: @escaping (UUID, T, XPCReply) -> Void) -> Self {
+    public static func decode<T: Decodable>(_ type: T.Type, decoder: @escaping (Data) throws -> T, handler: @escaping (XPCTransportPeer, T, XPCReply) -> Void) -> Self {
         self.init { queue, id, data, reply in
             do {
                 let value = try decoder(data)

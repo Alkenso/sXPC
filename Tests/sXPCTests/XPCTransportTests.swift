@@ -79,10 +79,10 @@ class XPCTransportTests: XCTestCase {
     }
     
     func test_send_clientToServer() throws {
-        var activePeer: UUID?
+        let activePeer = client.peerID
         let expOpen = expectation(description: "connectionOpened")
         server.connectionOpened = { peer in
-            activePeer = peer
+            XCTAssertEqual(peer.id, activePeer)
             expOpen.fulfill()
         }
         var expClosed: XCTestExpectation?
@@ -91,9 +91,12 @@ class XPCTransportTests: XCTestCase {
             expClosed?.fulfill()
         }
         
+        let peerUserInfo = Data(pod: 100500)
+        client.peerUserInfo = peerUserInfo
         let expServerReceive = expectation(description: "receiveDataHandler")
         server.receiveDataHandler = .decode(String.self) { peer, data, reply in
-            XCTAssertEqual(peer, activePeer)
+            XCTAssertEqual(peer.id, activePeer)
+            XCTAssertEqual(peer.userInfo, peerUserInfo)
             XCTAssertEqual(data, "hello from client")
             reply(.success(.encode("hello from server")))
             expServerReceive.fulfill()
@@ -117,7 +120,7 @@ class XPCTransportTests: XCTestCase {
         let expServerReceive = expectation(description: "server receive reply")
         server.connectionOpened = { [weak server] peer in
             DispatchQueue.global().async {
-                server?.send(to: peer, payload: .encode("hello from server"), reply: .decode(String.self) {
+                server?.send(to: peer.id, payload: .encode("hello from server"), reply: .decode(String.self) {
                     XCTAssertEqual($0.success, "hello from client")
                     expServerReceive.fulfill()
                 })
@@ -126,7 +129,7 @@ class XPCTransportTests: XCTestCase {
         
         let expClientReceive = expectation(description: "receiveDataHandler")
         client.receiveDataHandler = .decode(String.self) { [id = client.peerID] peer, data, reply in
-            XCTAssertEqual(peer, id)
+            XCTAssertEqual(peer.id, id)
             XCTAssertEqual(data, "hello from server")
             reply(.success(.encode("hello from client")))
             expClientReceive.fulfill()
