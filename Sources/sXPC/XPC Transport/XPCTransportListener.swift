@@ -31,6 +31,7 @@ import SwiftConvenience
 public class XPCTransportServer {
     private let listener: XPCTransportListener
     private let connections = Synchronized<[UUID: XPCTransportConnection]>(.serial)
+    private var prepareNewConnectionReceive: ((XPCTransportConnection) -> Void)?
     
     public init(_ xpcInit: XPCListenerInit) {
         self.listener = .init(xpcInit)
@@ -39,12 +40,24 @@ public class XPCTransportServer {
     public var queue = DispatchQueue(label: "XPCTransportServer.queue")
     public var connectionOpened: ((XPCTransportPeer) -> Void)?
     public var connectionClosed: ((UUID) -> Void)?
-    public var receiveDataHandler: XPCTransportReceiveDataHandler?
+    
     public var verifyConnectionHandler: ((audit_token_t) -> Bool)? {
         get { listener.verifyConnectionHandler }
         set { listener.verifyConnectionHandler = newValue }
     }
     public var activeConnections: [UUID] { Array(connections.read(\.keys)) }
+    
+    public func setReceiveMessageHandler<Message: Decodable>(
+        _ type: Message.Type = Message.self,
+        handler: @escaping (XPCTransportPeer, Message) -> Void
+    ) {
+        prepareNewConnectionReceive = { connection in
+            connection.setReceiveMessageHandler(Message.self) { [weak connection] in
+                guard let peer = connection?.peerInfo else { return }
+                handler(peer, $0)
+            }
+        }
+    }
     
     public func activate() {
         listener.newConnectionHandler = { [weak self] in self?.handleNewConnection($0) }
@@ -55,11 +68,11 @@ public class XPCTransportServer {
         listener.invalidate()
     }
     
-    public func send(to peer: UUID, payload: XPCPayload, reply: XPCReply) {
+    public func send<T: Encodable>(to peer: UUID, payload: T) throws {
         if let connection = connections.read({ $0[peer] }) {
-            connection.send(payload, reply: reply)
+            try connection.send(payload)
         } else {
-            reply(.failure(CommonError.notFound(what: "Connection", value: peer, where: "transport connections")))
+            throw CommonError.notFound(what: "Connection", value: peer, where: "transport connections")
         }
     }
     
@@ -78,7 +91,7 @@ public class XPCTransportServer {
                 break
             }
         }
-        transport.receiveDataHandler = receiveDataHandler
+        prepareNewConnectionReceive?(transport)
         
         connections.writeAsync { $0[id] = transport }
         transport.activate()

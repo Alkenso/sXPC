@@ -28,27 +28,39 @@ import SwiftConvenience
 private let clientHello = Data(UUID(staticString: "fef88fd3-9f29-4632-8827-0b417472c8f2").uuidString.utf8)
 private let serverHello = Data(UUID(staticString: "071e1957-bf27-4669-961a-7e707b980740").uuidString.utf8)
 
-public class XPCTransportConnection {
-    public enum ConnectionState: Hashable, CaseIterable {
-        /// Connection is performing initial handshake (initial connect or reconnect).
-        /// Usually a good point to prepare/reset related program state
-        ///
-        /// Note: this state comes to 'stateHandler' on EACH reconnect attempt.
-        /// This allows the client to drop connection is too many reconnects occur
-        case connecting
-        
-        /// Connection is ready for use. It is OK to start message exchange
-        case connected
-        
-        /// Connection is invalidated and closed. No messages with go though it
-        case invalidated
-    }
+public struct XPCTransportPeer: Hashable {
+    public var id: UUID
+    public var userInfo: Data
     
+    public init(id: UUID, userInfo: Data) {
+        self.id = id
+        self.userInfo = userInfo
+    }
+}
+
+public enum XPCTransportConnectionState: Hashable, CaseIterable {
+    /// Connection is performing initial handshake (initial connect or reconnect).
+    /// Usually a good point to prepare/reset related program state
+    ///
+    /// Note: this state comes to 'stateHandler' on EACH reconnect attempt.
+    /// This allows the client to drop connection is too many reconnects occur
+    case connecting
+    
+    /// Connection is ready for use. It is OK to start message exchange
+    case connected
+    
+    /// Connection is invalidated and closed. No messages with go though it
+    case invalidated
+}
+
+public class XPCTransportConnection {
     private let connectionQueue = DispatchQueue(label: "XPCTransportConnection.connectionQueue")
     private var xpc: XPCConnectionInit?
     private let isClient: Bool
     private var serverActivation: (() -> Void)?
     private var connection: XPCConnection<TransportXPC, TransportXPC>
+    private var receiveDataHandler: ((Data) throws -> Void)?
+    private var pendingReplies: [UUID: XPCReply] = [:]
     
     public init(xpc: XPCConnectionInit) {
         switch xpc {
@@ -73,11 +85,20 @@ public class XPCTransportConnection {
     }
     
     // Properties to be set BEFORE 'activate'. Overriding them after 'activate' leads to undefined behaviour
-    public var stateHandler: ((ConnectionState) -> Void)?
-    public var receiveDataHandler: XPCTransportReceiveDataHandler?
     public var queue = DispatchQueue(label: "XPCTransportConnection.queue")
+    public var stateHandler: ((XPCTransportConnectionState) -> Void)?
     
-    @Atomic public private(set)var state: ConnectionState?
+    public func setReceiveMessageHandler<Message: Decodable>(_ type: Message.Type = Message.self, handler: @escaping (Message) -> Void) {
+        let decoder = JSONDecoder()
+        decoder.userInfo[.replySender] = { [weak self] in self?.sendReply(id: $0, response: $1) } as XPCTransportMessageReplySender
+        
+        receiveDataHandler = { [queue] in
+            let value = try decoder.decode(Message.self, from: $0)
+            queue.async { handler(value) }
+        }
+    }
+    
+    @Atomic public private(set)var state: XPCTransportConnectionState?
     
     /// Unique ID of the connection
     /// `peerID` is the same for both client and server parts of the same connection
@@ -115,93 +136,73 @@ public class XPCTransportConnection {
         }
     }
     
-    public func send(_ payload: XPCPayload, reply: XPCReply) {
-        connectionQueue.async {
-            var replyEx = reply
-            replyEx.processingQueue = self.connectionQueue
-            replyEx.finalQueue = self.queue
+    public func send<T: Encodable>(_ payload: T) throws {
+        try connectionQueue.sync {
+            guard state != nil else {
+                throw CommonError.unexpected("Send failed: transport connection is not activated")
+            }
             
-            guard self.state != nil else {
-                replyEx(.failure(CommonError.unexpected("Failed to send data: transport connection is not activated")))
+            let encoder = JSONEncoder()
+            var replies: [XPCReply] = []
+            encoder.userInfo[.replyCollector] = { replies.append($0) } as XPCTransportMessageReplyCollector
+            
+            let data = try encoder.encode(payload)
+            replies.forEach { pendingReplies[$0.id] = $0 }
+            
+            let replyIDs = replies.map(\.id)
+            self.connection
+                .remoteObjectProxy { [weak self] in self?.fulfillPendingReply(to: replyIDs, with: .failure($0)) }
+                .sendRequest(data) { [weak self] _, error in
+                    if let error = error {
+                        self?.fulfillPendingReply(to: replyIDs, with: .failure(error))
+                    }
+                }
+        }
+    }
+    
+    private func sendReply(id: UUID, response: Result<XPCPayload, Error>) {
+        DispatchQueue.global().async {
+            let result = response.flatMap { value in Result { try value.data() } }
+            self.connectionQueue.async {
+                self.connection
+                    .remoteObjectProxy
+                    .sendReply(id: id, data: result.success, error: result.failure)
+            }
+        }
+    }
+    
+    fileprivate func receiveRequest(_ data: Data, confirmation: @escaping (Data?, Error?) -> Void) {
+        guard !receiveClientHello(data, reply: confirmation) else { return }
+        
+        DispatchQueue.global().async {
+            guard let receiveDataHandler = self.receiveDataHandler else {
+                confirmation(nil, CommonError.fatal("Receiving is not implemented"))
                 return
             }
             
             do {
-                let data = try payload.data()
-                self.connection
-                    .remoteObjectProxy { replyEx(.failure($0)) }
-                    .send(data) { replyEx(Result(success: $0.flatMap(XPCPayload.raw), failure: $1)) }
+                try receiveDataHandler(data)
+                confirmation(nil, nil)
             } catch {
-                replyEx(.failure(error))
+                confirmation(nil, error)
             }
         }
     }
     
-    fileprivate func receiveData(_ data: Data, reply: @escaping (Data?, Error?) -> Void) {
-        guard !receiveClientHello(data, reply: reply) else { return }
-        connectionQueue.async { self.receiveMessageData(data, reply: reply) }
+    fileprivate func receiveReply(id: UUID, response: Result<Data, Error>) {
+        fulfillPendingReply(to: [id], with: response)
     }
     
-    private func receiveMessageData(_ data: Data, reply: @escaping (Data?, Error?) -> Void) {
-        guard let receiveDataHandler = receiveDataHandler else {
-            reply(nil, CommonError.fatal("Receiving is not implemented"))
-            return
-        }
-        
-        var replyEx = XPCReply {
-            switch $0 {
-            case .success(let replyData):
-                reply(replyData, nil)
-            case .failure(let replyError):
-                reply(nil, replyError)
-            }
-        }
-        replyEx.processingQueue = connectionQueue
-        replyEx.finalQueue = nil
-        receiveDataHandler.handler(queue, XPCTransportPeer(id: peerID, userInfo: peerUserInfo), data, replyEx)
-    }
-    
-    private func updateState(_ state: ConnectionState) {
-        self.state = state
-        queue.async {
-            self.stateHandler?(state)
-        }
-    }
-    
-    private func reconnect() {
+    private func fulfillPendingReply(to ids: [UUID], with response: Result<Data, Error>) {
         connectionQueue.async {
-            guard let xpc = self.xpc else {
-                self.updateState(.invalidated)
-                return
-            }
-            self.connection = XPCConnection(xpc, remoteInterface: .transport, exportedInterface: .transport)
-            self.prepareAndResume(connection: self.connection)
-        }
-    }
-    
-    private func prepareAndResume(connection: XPCConnection<TransportXPC, TransportXPC>) {
-        updateState(.connecting)
-        
-        let exportedObject = ExportedObject(connection: Weak(self))
-        connection.exportedObject = exportedObject
-        connection.interruptionHandler = { [weak connection] in
-            connection?.invalidate()
-        }
-        connection.invalidationHandler = { [weak self, weak connection] in
-            connection?.invalidationHandler = nil
-            self?.reconnect()
-        }
-        
-        connection.resume()
-        
-        if isClient {
-            sendClientHello()
+            let replys = ids.compactMap { self.pendingReplies.removeValue(forKey: $0) }
+            replys.forEach { $0.reply(.global(), self.queue, response) }
         }
     }
     
     private func sendClientHello() {
         let helloData = clientHello + Data(pod: peerID.uuid) + peerUserInfo
-        connection.remoteObjectProxy.send(helloData) { response, error in
+        connection.remoteObjectProxy.sendRequest(helloData) { response, error in
             self.connectionQueue.async {
                 if response == serverHello {
                     self.updateState(.connected)
@@ -240,7 +241,46 @@ public class XPCTransportConnection {
         
         return true
     }
+    
+    private func updateState(_ state: XPCTransportConnectionState) {
+        self.state = state
+        queue.async {
+            self.stateHandler?(state)
+        }
+    }
+    
+    private func reconnect() {
+        connectionQueue.async {
+            guard let xpc = self.xpc else {
+                self.updateState(.invalidated)
+                return
+            }
+            self.connection = XPCConnection(xpc, remoteInterface: .transport, exportedInterface: .transport)
+            self.prepareAndResume(connection: self.connection)
+        }
+    }
+    
+    private func prepareAndResume(connection: XPCConnection<TransportXPC, TransportXPC>) {
+        updateState(.connecting)
+        
+        let exportedObject = ExportedObject(connection: Weak(self))
+        connection.exportedObject = exportedObject
+        connection.interruptionHandler = { [weak connection] in
+            connection?.invalidate()
+        }
+        connection.invalidationHandler = { [weak self, weak connection] in
+            connection?.invalidationHandler = nil
+            self?.reconnect()
+        }
+        
+        connection.resume()
+        
+        if isClient {
+            sendClientHello()
+        }
+    }
 }
+
 
 extension XPCTransportConnection {
     public var peerInfo: XPCTransportPeer {
@@ -248,26 +288,28 @@ extension XPCTransportConnection {
     }
 }
 
+extension XPCTransportConnectionState: CustomStringConvertible {
+    public var description: String { "\(self)" }
+}
+
 
 @objc
 private class ExportedObject: NSObject, TransportXPC {
-    private let receiveDataHandler: (Data, @escaping (Data?, Error?) -> Void) -> Void
+    private let connection: Weak<XPCTransportConnection>
     
     init(connection: Weak<XPCTransportConnection>) {
-        receiveDataHandler = { data, reply in
-            guard let instance = connection.value else {
-                reply(nil, CommonError.unexpected("Connection is died"))
-                return
-            }
-            instance.receiveData(data, reply: reply)
-        }
+        self.connection = connection
     }
     
-    func send(_ data: Data, reply: @escaping (Data?, Error?) -> Void) {
-        receiveDataHandler(data, reply)
+    func sendRequest(_ data: Data, receiveConfirmation: @escaping (Data?, Error?) -> Void) {
+        guard let connection = connection.value else {
+            receiveConfirmation(nil, CommonError.unexpected("Connection is died"))
+            return
+        }
+        connection.receiveRequest(data, confirmation: receiveConfirmation)
     }
-}
-
-extension XPCTransportConnection.ConnectionState: CustomStringConvertible {
-    public var description: String { "\(self)" }
+    
+    func sendReply(id: UUID, data: Data?, error: Error?) {
+        connection.value?.receiveReply(id: id, response: .init(success: data, failure: error))
+    }
 }

@@ -21,7 +21,7 @@ class XPCTransportTests: XCTestCase {
     func test_connect_invalidate() throws {
         let connectedExp = expectation(description: "Client connected")
         var invalidateExp: XCTestExpectation?
-        var steps: [XPCTransportConnection.ConnectionState] = []
+        var steps: [XPCTransportConnectionState] = []
         client.stateHandler = { connectionState in
             switch connectionState {
             case .connected:
@@ -44,8 +44,8 @@ class XPCTransportTests: XCTestCase {
         waitForExpectations()
         
         // Ensure the client went through all states: from 'waiting' to 'invalidated'
-        XCTAssertEqual(steps.count, XPCTransportConnection.ConnectionState.allCases.count)
-        XCTAssertEqual(Set(steps), Set(XPCTransportConnection.ConnectionState.allCases))
+        XCTAssertEqual(steps.count, XPCTransportConnectionState.allCases.count)
+        XCTAssertEqual(Set(steps), Set(XPCTransportConnectionState.allCases))
     }
     
     func test_serverInvalidate() throws {
@@ -55,7 +55,7 @@ class XPCTransportTests: XCTestCase {
         let connectedExp = expectation(description: "Client connected")
         connectedExp.expectedFulfillmentCount = 2
         var invalidateExp: XCTestExpectation?
-        let stateHandler = { (connectionState: XPCTransportConnection.ConnectionState) in
+        let stateHandler = { (connectionState: XPCTransportConnectionState) in
             switch connectionState {
             case .connected:
                 connectedExp.fulfill()
@@ -79,6 +79,8 @@ class XPCTransportTests: XCTestCase {
     }
     
     func test_send_clientToServer() throws {
+        typealias Message = XPCTransportMessage<String, String>
+        
         let activePeer = client.peerID
         let expOpen = expectation(description: "connectionOpened")
         server.connectionOpened = { peer in
@@ -94,20 +96,21 @@ class XPCTransportTests: XCTestCase {
         let peerUserInfo = Data(pod: 100500)
         client.peerUserInfo = peerUserInfo
         let expServerReceive = expectation(description: "receiveDataHandler")
-        server.receiveDataHandler = .decode(String.self) { peer, data, reply in
+        server.setReceiveMessageHandler(Message.self) { peer, message in
             XCTAssertEqual(peer.id, activePeer)
             XCTAssertEqual(peer.userInfo, peerUserInfo)
-            XCTAssertEqual(data, "hello from client")
-            reply(.success(.encode("hello from server")))
+            XCTAssertEqual(message.request, "hello from client")
+            message.reply(.success("hello from server"))
             expServerReceive.fulfill()
         }
+        
         client.activate()
         
         let expClientGotResponse = expectation(description: "send reply")
-        client.send(.encode("hello from client"), reply: .decode(String.self) {
+        try client.send(Message(request: "hello from client", reply: {
             XCTAssertEqual($0.success, "hello from server")
             expClientGotResponse.fulfill()
-        })
+        }))
         
         waitForExpectations()
         
@@ -117,36 +120,30 @@ class XPCTransportTests: XCTestCase {
     }
     
     func test_send_serverToClient() throws {
+        typealias Message = XPCTransportMessage<String, String>
+        
         let expServerReceive = expectation(description: "server receive reply")
         server.connectionOpened = { [weak server] peer in
             DispatchQueue.global().async {
-                server?.send(to: peer.id, payload: .encode("hello from server"), reply: .decode(String.self) {
-                    XCTAssertEqual($0.success, "hello from client")
-                    expServerReceive.fulfill()
-                })
+                do {
+                    try server.get().send(to: peer.id, payload: Message(request: "hello from server", reply: {
+                        XCTAssertEqual($0.success, "hello from client")
+                        expServerReceive.fulfill()
+                    }))
+                } catch {
+                    XCTFail("Failed to send message to \(peer). Error: \(error)")
+                }
             }
         }
         
         let expClientReceive = expectation(description: "receiveDataHandler")
-        client.receiveDataHandler = .decode(String.self) { [id = client.peerID] peer, data, reply in
-            XCTAssertEqual(peer.id, id)
-            XCTAssertEqual(data, "hello from server")
-            reply(.success(.encode("hello from client")))
+        client.setReceiveMessageHandler(Message.self) {
+            XCTAssertEqual($0.request, "hello from server")
+            $0.reply(.success("hello from client"))
             expClientReceive.fulfill()
         }
         
         client.activate()
         waitForExpectations()
-    }
-    
-    func test_xpcReply_decode() throws {
-        XPCReply.decode(String.self) { XCTAssertEqual($0.success, "qwerty") }(.encode("qwerty"))
-        XPCReply.decode(String.self) { XCTAssertNotEqual($0.success, "qwerty") }(.encode("qiop"))
-        XPCReply.decode(String.self) { XCTAssertNotNil($0.failure) }(.encode(123))
-        XPCReply.decode(String.self) { XCTAssertNotNil($0.failure) }(.raw(Data()))
-        XPCReply.decode(String.self) { XCTAssertNotNil($0.failure) }(TestError())
-
-        let raw = try XPCPayload.encode("qwerty").data()
-        XPCReply.decode(String.self) { XCTAssertEqual($0.success, "qwerty") }(.raw(raw))
     }
 }
