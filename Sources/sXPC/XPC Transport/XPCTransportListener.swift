@@ -98,6 +98,12 @@ public class XPCTransportServer {
     }
 }
 
+private extension XPCTransportConnection {
+    var peerInfo: XPCTransportPeer {
+        XPCTransportPeer(id: peerID, userInfo: peerUserInfo, auditToken: connectionToken ?? .init())
+    }
+}
+
 
 /// XPCTransportListener listens for incoming connections and forward them to the caller
 public class XPCTransportListener {

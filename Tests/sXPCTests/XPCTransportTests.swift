@@ -68,19 +68,27 @@ class XPCTransportTests: XCTestCase {
         client.stateHandler = stateHandler
         secondClient.stateHandler = stateHandler
         
+        XCTAssertNil(client.connectionToken)
+        
         client.activate()
         secondClient.activate()
         waitForExpectations()
+        
+        let auditTokenSelf = try audit_token_t.current()
+        XCTAssertEqual(client.connectionToken, auditTokenSelf)
         
         invalidateExp = expectation(description: "Client invalidate")
         invalidateExp?.expectedFulfillmentCount = 2
         server.invalidate()
         waitForExpectations()
+        
+        XCTAssertNil(client.connectionToken)
     }
     
     func test_send_clientToServer() throws {
         typealias Message = XPCTransportMessage<String, String>
         
+        let auditTokenSelf = try audit_token_t.current()
         let activePeer = client.peerID
         let peerUserInfo = Data(pod: 100500)
         client.peerUserInfo = peerUserInfo
@@ -89,6 +97,7 @@ class XPCTransportTests: XCTestCase {
         server.connectionOpened = { peer in
             XCTAssertEqual(peer.id, activePeer)
             XCTAssertEqual(peer.userInfo, peerUserInfo)
+            XCTAssertEqual(peer.auditToken, auditTokenSelf)
             expOpen.fulfill()
         }
         var expClosed: XCTestExpectation?

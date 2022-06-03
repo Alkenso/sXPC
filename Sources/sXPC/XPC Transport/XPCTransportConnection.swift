@@ -31,10 +31,12 @@ private let serverHello = Data(UUID(staticString: "071e1957-bf27-4669-961a-7e707
 public struct XPCTransportPeer: Hashable {
     public var id: UUID
     public var userInfo: Data
+    public var auditToken: audit_token_t
     
-    public init(id: UUID, userInfo: Data) {
+    public init(id: UUID, userInfo: Data, auditToken: audit_token_t) {
         self.id = id
         self.userInfo = userInfo
+        self.auditToken = auditToken
     }
 }
 
@@ -99,6 +101,7 @@ public class XPCTransportConnection {
     }
     
     @Atomic public private(set)var state: XPCTransportConnectionState?
+    @Atomic public private(set)var connectionToken: audit_token_t?
     
     /// Unique ID of the connection
     /// `peerID` is the same for both client and server parts of the same connection
@@ -243,6 +246,7 @@ public class XPCTransportConnection {
     }
     
     private func updateState(_ state: XPCTransportConnectionState) {
+        connectionToken = state == .connected ? connection.native.auditToken : nil
         self.state = state
         queue.async {
             self.stateHandler?(state)
@@ -278,13 +282,6 @@ public class XPCTransportConnection {
         if isClient {
             sendClientHello()
         }
-    }
-}
-
-
-extension XPCTransportConnection {
-    public var peerInfo: XPCTransportPeer {
-        XPCTransportPeer(id: peerID, userInfo: peerUserInfo)
     }
 }
 
