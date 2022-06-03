@@ -38,7 +38,7 @@ public struct XPCTransportPeer: Hashable {
     }
 }
 
-public enum XPCTransportConnectionState: Hashable, CaseIterable {
+public enum XPCTransportConnectionState: String, Hashable, CaseIterable {
     /// Connection is performing initial handshake (initial connect or reconnect).
     /// Usually a good point to prepare/reset related program state
     ///
@@ -288,8 +288,14 @@ extension XPCTransportConnection {
     }
 }
 
+extension XPCTransportConnection: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        "XPCTransportConnection { peerID = \(peerID), peerUserInfo = \(peerUserInfo.base64EncodedString()), state = \(state?.description ?? "nil") }"
+    }
+}
+
 extension XPCTransportConnectionState: CustomStringConvertible {
-    public var description: String { "\(self)" }
+    public var description: String { rawValue }
 }
 
 
