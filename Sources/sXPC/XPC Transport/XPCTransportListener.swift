@@ -39,7 +39,7 @@ public class XPCTransportServer {
     
     public var queue = DispatchQueue(label: "XPCTransportServer.queue")
     public var connectionOpened: ((XPCTransportPeer) -> Void)?
-    public var connectionClosed: ((UUID) -> Void)?
+    public var connectionClosed: ((XPCTransportPeer) -> Void)?
     
     public var verifyConnectionHandler: ((audit_token_t) -> Bool)? {
         get { listener.verifyConnectionHandler }
@@ -85,7 +85,7 @@ public class XPCTransportServer {
             case .connected:
                 self.connectionOpened?(transport.peerInfo)
             case .invalidated:
-                self.connectionClosed?(id)
+                self.connectionClosed?(transport.peerInfo)
                 self.connections.writeAsync { $0.removeValue(forKey: id) }
             case .connecting:
                 break

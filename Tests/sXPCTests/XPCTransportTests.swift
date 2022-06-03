@@ -82,19 +82,22 @@ class XPCTransportTests: XCTestCase {
         typealias Message = XPCTransportMessage<String, String>
         
         let activePeer = client.peerID
+        let peerUserInfo = Data(pod: 100500)
+        client.peerUserInfo = peerUserInfo
+        
         let expOpen = expectation(description: "connectionOpened")
         server.connectionOpened = { peer in
             XCTAssertEqual(peer.id, activePeer)
+            XCTAssertEqual(peer.userInfo, peerUserInfo)
             expOpen.fulfill()
         }
         var expClosed: XCTestExpectation?
         server.connectionClosed = { peer in
-            XCTAssertEqual(peer, activePeer)
+            XCTAssertEqual(peer.id, activePeer)
+            XCTAssertEqual(peer.userInfo, peerUserInfo)
             expClosed?.fulfill()
         }
         
-        let peerUserInfo = Data(pod: 100500)
-        client.peerUserInfo = peerUserInfo
         let expServerReceive = expectation(description: "receiveMessageHandler")
         server.setReceiveMessageHandler(Message.self) { peer, message in
             XCTAssertEqual(peer.id, activePeer)
