@@ -95,7 +95,7 @@ class XPCTransportTests: XCTestCase {
         
         let peerUserInfo = Data(pod: 100500)
         client.peerUserInfo = peerUserInfo
-        let expServerReceive = expectation(description: "receiveDataHandler")
+        let expServerReceive = expectation(description: "receiveMessageHandler")
         server.setReceiveMessageHandler(Message.self) { peer, message in
             XCTAssertEqual(peer.id, activePeer)
             XCTAssertEqual(peer.userInfo, peerUserInfo)
@@ -136,7 +136,7 @@ class XPCTransportTests: XCTestCase {
             }
         }
         
-        let expClientReceive = expectation(description: "receiveDataHandler")
+        let expClientReceive = expectation(description: "receiveMessageHandler")
         client.setReceiveMessageHandler(Message.self) {
             XCTAssertEqual($0.request, "hello from server")
             $0.reply(.success("hello from client"))
@@ -144,6 +144,29 @@ class XPCTransportTests: XCTestCase {
         }
         
         client.activate()
+        waitForExpectations()
+    }
+    
+    func test_xpcvoid() throws {
+        typealias Message = XPCTransportMessage<XPCVoid, XPCVoid>
+        
+        let expOpen = expectation(description: "connectionOpened")
+        server.connectionOpened = { _ in expOpen.fulfill() }
+        
+        let expServerReceive = expectation(description: "receiveMessageHandler")
+        server.setReceiveMessageHandler(Message.self) { peer, message in
+            message.reply(.success(.init()))
+            expServerReceive.fulfill()
+        }
+        
+        client.activate()
+        
+        let expClientGotResponse = expectation(description: "send reply")
+        try client.send(Message {
+            XCTAssertNil($0.failure)
+            expClientGotResponse.fulfill()
+        })
+        
         waitForExpectations()
     }
 }

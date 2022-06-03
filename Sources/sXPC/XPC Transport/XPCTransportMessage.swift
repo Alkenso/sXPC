@@ -8,6 +8,8 @@
 import Foundation
 import SwiftConvenience
 
+public struct XPCVoid: Codable {}
+
 public struct XPCTransportMessage<Request: Codable, Response: Codable> {
     public var request: Request
     public var reply: (Result<Response, Error>) -> Void
@@ -16,7 +18,7 @@ public struct XPCTransportMessage<Request: Codable, Response: Codable> {
     /// - Parameters:
     ///     - request: `Encodable` type to be sent to another party
     ///     - reply: action to be called when another party responds
-    /// - Warning: `reply` action must not deal with `XPCTransportMessage` type. It is unsupported
+    /// - Warning: `reply` action MUST NOT deal with `XPCTransportMessage` type: it is unsupported and error-prone
     public init(request: Request, reply: @escaping (Result<Response, Error>) -> Void) {
         self.request = request
         self.reply = reply
@@ -25,6 +27,13 @@ public struct XPCTransportMessage<Request: Codable, Response: Codable> {
     private enum CodingKeys: String, CodingKey {
         case request
         case replyID
+    }
+}
+
+extension XPCTransportMessage {
+    public init(reply: @escaping (Result<Response, Error>) -> Void) where Request == XPCVoid {
+        self.request = XPCVoid()
+        self.reply = reply
     }
 }
 
