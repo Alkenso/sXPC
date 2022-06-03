@@ -129,7 +129,7 @@ class XPCTransportTests: XCTestCase {
         server.connectionOpened = { [weak server] peer in
             DispatchQueue.global().async {
                 do {
-                    try server.get().send(to: peer.id, payload: Message(request: "hello from server", reply: {
+                    try server.get().send(to: peer.id, message: Message(request: "hello from server", reply: {
                         XCTAssertEqual($0.success, "hello from client")
                         expServerReceive.fulfill()
                     }))

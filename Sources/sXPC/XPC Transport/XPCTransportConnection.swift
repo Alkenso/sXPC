@@ -136,7 +136,7 @@ public class XPCTransportConnection {
         }
     }
     
-    public func send<T: Encodable>(_ payload: T) throws {
+    public func send<Message: Encodable>(_ message: Message) throws {
         try connectionQueue.sync {
             guard state != nil else {
                 throw CommonError.unexpected("Send failed: transport connection is not activated")
@@ -146,7 +146,7 @@ public class XPCTransportConnection {
             var replies: [XPCReply] = []
             encoder.userInfo[.replyCollector] = { replies.append($0) } as XPCTransportMessageReplyCollector
             
-            let data = try encoder.encode(payload)
+            let data = try encoder.encode(message)
             replies.forEach { pendingReplies[$0.id] = $0 }
             
             let replyIDs = replies.map(\.id)

@@ -68,9 +68,9 @@ public class XPCTransportServer {
         listener.invalidate()
     }
     
-    public func send<T: Encodable>(to peer: UUID, payload: T) throws {
+    public func send<Message: Encodable>(to peer: UUID, message: Message) throws {
         if let connection = connections.read({ $0[peer] }) {
-            try connection.send(payload)
+            try connection.send(message)
         } else {
             throw CommonError.notFound(what: "Connection", value: peer, where: "transport connections")
         }
