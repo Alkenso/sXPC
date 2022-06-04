@@ -45,6 +45,7 @@ public struct XPCInterface<Interface, InterfaceXPC> {
 }
 
 extension XPCInterface {
+    /// Creates `XPCInterface` instance for case when exposed and internal interfaces are the same
     public static func direct(interface: NSXPCInterface) -> XPCInterface where Interface == InterfaceXPC {
         Self(
             interface: interface,
@@ -54,10 +55,10 @@ extension XPCInterface {
     }
 }
 
-public extension NSCoder {
-    static let defaultCodablePayloadKey = "payload"
-    
-    func encodeCodable<T: Encodable>(_ value: T, forKey key: String = NSCoder.defaultCodablePayloadKey) {
+extension NSCoder {
+    /// Encode codable type as JSON using given NSCoder
+    /// - Throws: NSException named `NSInvalidArchiveOperationException` if encoding fails
+    public func encodeCodable<T: Encodable>(_ value: T, forKey key: String) {
         do {
             let data = try JSONEncoder().encode(value)
             encode(data, forKey: key)
@@ -70,7 +71,9 @@ public extension NSCoder {
         }
     }
     
-    func decodeCodable<T: Decodable>(_ type: T.Type = T.self, forKey key: String = NSCoder.defaultCodablePayloadKey) -> T? {
+    /// Decode codable type as JSON using given NSCoder
+    /// - Returns: Decoded object or nil if decoding fails
+    public func decodeCodable<T: Decodable>(_ type: T.Type = T.self, forKey key: String) -> T? {
         guard let data = decodeObject(forKey: key) as? Data else { return nil }
         do {
             return try JSONDecoder().decode(type, from: data)
@@ -80,7 +83,7 @@ public extension NSCoder {
     }
 }
 
-public extension NSXPCInterface {
+extension NSXPCInterface {
     private static let defaultClasses = NSSet(array: [
         NSArray.self,
         NSString.self,
@@ -94,19 +97,30 @@ public extension NSXPCInterface {
         NSError.self,
     ]) as Set
     
-    
-    func extendClasses(_ classes: [Any], for sel: Selector, argumentIndex arg: Int, ofReply: Bool) {
+    /// Custom classes inherited from NSSecureCoding and nested in collections (NSDictionary, NSArray and same)
+    /// must be explicitly declared for XPC runtime.
+    /// The method declares custom types, adding most popular built-in types
+    /// to cover potential nested classes inside custom onces.
+    /// - Note: for more information on custom classes sent over XPC refer to 'Working with Custom Classes' paragraph of https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingXPCServices.html
+    public func extendClasses(_ classes: [Any], for sel: Selector, argumentIndex arg: Int, ofReply: Bool) {
         let existingClasses = self.classes(for: sel, argumentIndex: arg, ofReply: ofReply)
         let extendedClasses = existingClasses.union(Self.defaultClasses).union(NSSet(array: classes) as Set)
         setClasses(extendedClasses, for: sel, argumentIndex: arg, ofReply: ofReply)
     }
     
-    enum SelectorArgument {
+    public enum SelectorArgument {
         case byCopy(classes: [Any], argumentIndex: Int, ofReply: Bool)
         case byProxy(interface: NSXPCInterface, argumentIndex: Int, ofReply: Bool)
     }
     
-    func extendSelector(_ sel: Selector, with arguments: [SelectorArgument]) {
+    /// Custom classes inherited from NSSecureCoding and nested in collections (NSDictionary, NSArray and same)
+    /// must be explicitly declared for XPC runtime.
+    /// The method declares custom types, adding most popular built-in types
+    /// to cover potential nested classes inside custom onces
+    /// - Note: This is 'object-oriented' approach of `extendClasses(_:for:argumentIndex:ofReply:`
+    ///
+    /// For more information on custom classes sent over XPC refer to 'Working with Custom Classes' paragraph of https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingXPCServices.html
+    public func extendSelector(_ sel: Selector, with arguments: [SelectorArgument]) {
         for arg in arguments {
             switch arg {
             case let .byCopy(classes, index, ofReply):
