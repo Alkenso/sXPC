@@ -1,24 +1,18 @@
-//
-//  main.swift
-//  XPCService
-//
-//  Created by testm1 on 02.04.2021.
-//
-
 import Foundation
-import Shared
 
-
-struct DummyService: Service {
-    func perform(_ request: Request, reply: @escaping (Response) -> Void) {
-        reply(.init(allow: true, cache: false))
+struct MockTokenService: TokenService {
+    func requestToken(_ request: TokenRequest, reply: @escaping (Result<TokenResponse, Error>) -> Void) {
+        let token = Data((request.user + request.password).utf8).base64EncodedString()
+        let expiration = Date().addingTimeInterval(3600)
+        let response = TokenResponse(token: token, expiration: expiration)
+        
+        reply(.success(response))
     }
 }
 
-
-let listener = SampleXPCListener(listener: .service())
+let listener = TokenServiceXPCListener(xpc: .service)
 listener.newConnectionHandler = {
-    $0.exportedObject = DummyService()
+    $0.exportedObject = MockTokenService()
     $0.resume()
     return true
 }
