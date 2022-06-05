@@ -159,6 +159,25 @@ class XPCTransportTests: XCTestCase {
         waitForExpectations()
     }
     
+    func test_message_dropWithoutReply() throws {
+        typealias Message = XPCTransportMessage<XPCVoid, XPCVoid>
+        
+        let expServerReceive = expectation(description: "receiveMessageHandler")
+        server.setReceiveMessageHandler(Message.self) { _, _ in // ignore the message
+            expServerReceive.fulfill()
+        }
+        
+        client.activate()
+        
+        let expClientGotResponse = expectation(description: "send reply")
+        try client.send(Message {
+            XCTAssertNotNil($0.failure) // replied with error (Message dropped)
+            expClientGotResponse.fulfill()
+        })
+        
+        waitForExpectations()
+    }
+    
     func test_xpcvoid() throws {
         typealias Message = XPCTransportMessage<XPCVoid, XPCVoid>
         
