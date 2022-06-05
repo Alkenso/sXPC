@@ -7,7 +7,7 @@
 - hide objective-c details, using pure Swift in the App
 
 ### XPCTranport
-XPCTranport included in the package, is kind of add-on to sXPC, providing message-oriented approach to XPC communication
+XPCTranport is kind of add-on to sXPC, providing message-oriented approach to XPC communication
 XPCTranport introduces sort of stable connection between client and service endpoints
 - built-in handshake with initial customizable payload
 - built-in reconnect behaviour
