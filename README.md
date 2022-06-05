@@ -1,4 +1,4 @@
-## sXPC - Swift-typed wrapper around NSXPCConneciton.
+## sXPC - Swift-typed wrapper around NSXPCConneciton
 
 **sXPC** allows you to
 - make NSXPCConnection to produce typed remoteObject / set typed exportedObject
@@ -6,10 +6,9 @@
 - have NSXPCIntegrace description in the single place
 - hide objective-c details, using pure Swift in the App
 
-**sXPC-XPCTranport**, included in the package, is kind of add-on to sXPC, 
-providing message-oriented approach to XPC communication
-
-**sXPC-XPCTranport** introduces sort of stable connection between client and service endpoints
+### XPCTranport
+XPCTranport included in the package, is kind of add-on to sXPC, providing message-oriented approach to XPC communication
+XPCTranport introduces sort of stable connection between client and service endpoints
 - built-in handshake with initial customizable payload
 - built-in reconnect behaviour
 - Codable types support
