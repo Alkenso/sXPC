@@ -6,9 +6,9 @@
 - have NSXPCIntegrace description in the single place
 - hide objective-c details, using pure Swift in the App
 
-### XPCTranport
-XPCTranport is kind of add-on to sXPC, providing message-oriented approach to XPC communication
-XPCTranport introduces sort of stable connection between client and service endpoints
+### XPCTransport
+XPCTransport is kind of add-on to sXPC, providing message-oriented approach to XPC communication
+XPCTransport introduces sort of stable connection between client and service endpoints
 - built-in handshake with initial customizable payload
 - built-in reconnect behaviour
 - Codable types support
