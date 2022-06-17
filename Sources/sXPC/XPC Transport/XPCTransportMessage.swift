@@ -25,7 +25,9 @@
 import Foundation
 import SwiftConvenience
 
-public struct XPCVoid: Codable {}
+public struct XPCVoid: Codable {
+    public init() {}
+}
 
 public struct XPCTransportMessage<Request: Codable, Response: Codable> {
     private let replyAction: (Result<Response, Error>) -> Void
@@ -59,9 +61,13 @@ extension XPCTransportMessage {
         self.init(request: XPCVoid(), reply: reply)
     }
     
-    /// Reply to message
-    public func reply() where Response == XPCVoid {
-        reply(.success(XPCVoid()))
+    /// Reply to message with 'success'
+    public func reply(_ errorOrNil: Error?) where Response == XPCVoid {
+        if let error = errorOrNil {
+            reply(.failure(error))
+        } else {
+            reply(.success(XPCVoid()))
+        }
     }
 }
 
