@@ -1,8 +1,7 @@
 @testable import sXPC
 
-import XCTest
 import SwiftConvenienceTestUtils
-
+import XCTest
 
 class XPCTransportTests: XCTestCase {
     var nativeListener: NSXPCListener!
@@ -185,7 +184,7 @@ class XPCTransportTests: XCTestCase {
         server.connectionOpened = { _ in expOpen.fulfill() }
         
         let expServerReceive = expectation(description: "receiveMessageHandler")
-        server.setReceiveMessageHandler(Message.self) { peer, message in
+        server.setReceiveMessageHandler(Message.self) { _, message in
             message.reply(.success(.init()))
             expServerReceive.fulfill()
         }

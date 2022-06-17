@@ -25,7 +25,6 @@
 import Foundation
 import SwiftConvenience
 
-
 extension XPCListener {
     public convenience init<ExportedInterfaceXPC, RemoteInterfaceXPC>(
         _ type: XPCListenerInit,
@@ -70,11 +69,10 @@ open class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol 
         native.endpoint
     }
     
-    
     // MARK: Private
+    
     private let listenerDelegate = ListenerDelegate()
     private let createConnection: (NSXPCConnection) -> XPCConnection<RemoteInterface, ExportedInterface>
-    
     
     private init(
         _ type: XPCListenerInit,
@@ -90,7 +88,7 @@ open class XPCListener<ExportedInterface, RemoteInterface>: XPCListenerProtocol 
 
 extension XPCListener {
     private class ListenerDelegate: NSObject, NSXPCListenerDelegate {
-        weak var parent: XPCListener? = nil
+        weak var parent: XPCListener?
         
         func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
             guard let parent = parent else {
@@ -158,13 +156,12 @@ public class AnyXPCListener<ExportedInterface, RemoteInterface>: XPCListenerProt
     private let _suspend: () -> Void
     private let _invalidate: () -> Void
     
-    
     public init<Listener: XPCListenerProtocol>(_ listener: Listener) where Listener.ExportedInterface == ExportedInterface, Listener.RemoteInterface == RemoteInterface {
-        _newConnectionHandler = GetSet(listener, \.newConnectionHandler)
-        _verifyConnectionHandler = GetSet(listener, \.verifyConnectionHandler)
-        _resume = listener.resume
-        _suspend = listener.suspend
-        _invalidate = listener.invalidate
+        self._newConnectionHandler = GetSet(listener, \.newConnectionHandler)
+        self._verifyConnectionHandler = GetSet(listener, \.verifyConnectionHandler)
+        self._resume = listener.resume
+        self._suspend = listener.suspend
+        self._invalidate = listener.invalidate
     }
     
     public var newConnectionHandler: ((XPCConnection<ExportedInterface, RemoteInterface>) -> Bool)? {

@@ -123,9 +123,9 @@ extension NSXPCInterface {
     public func extendSelector(_ sel: Selector, with arguments: [SelectorArgument]) {
         for arg in arguments {
             switch arg {
-            case let .byCopy(classes, index, ofReply):
+            case .byCopy(let classes, let index, let ofReply):
                 extendClasses(classes, for: sel, argumentIndex: index, ofReply: ofReply)
-            case let .byProxy(interface, index, ofReply):
+            case .byProxy(let interface, let index, let ofReply):
                 setInterface(interface, for: sel, argumentIndex: index, ofReply: ofReply)
             }
         }

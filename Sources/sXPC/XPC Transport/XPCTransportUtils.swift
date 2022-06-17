@@ -27,13 +27,12 @@ import Foundation
 struct XPCPayload {
     let data: () throws -> Data
 }
- 
+
 extension XPCPayload {
     static func encode<T: Encodable>(_ value: T) -> Self {
         .init { try JSONEncoder().encode(value) }
     }
 }
-
 
 internal struct XPCReply {
     let id = UUID()
@@ -54,7 +53,6 @@ extension XPCReply {
         }
     }
 }
-
 
 @objc(sXPCTransportXPC)
 internal protocol TransportXPC {

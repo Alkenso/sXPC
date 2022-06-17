@@ -45,6 +45,7 @@ public class XPCTransportServer {
         get { listener.verifyConnectionHandler }
         set { listener.verifyConnectionHandler = newValue }
     }
+    
     public var activeConnections: [UUID] { Array(connections.read(\.keys)) }
     
     public func setReceiveMessageHandler<Message: Decodable>(
@@ -103,7 +104,6 @@ private extension XPCTransportConnection {
         XPCTransportPeer(id: peerID, userInfo: peerUserInfo, auditToken: connectionToken ?? .init())
     }
 }
-
 
 /// XPCTransportListener listens for incoming connections and forward them to the caller
 public class XPCTransportListener {

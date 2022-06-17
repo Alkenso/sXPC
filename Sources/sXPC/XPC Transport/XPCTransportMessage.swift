@@ -98,7 +98,6 @@ extension XPCTransportMessage: Codable {
     }
 }
 
-
 internal typealias XPCTransportMessageReplySender = (UUID, Result<XPCPayload, Error>) -> Void
 internal typealias XPCTransportMessageReplyCollector = (XPCReply) -> Void
 

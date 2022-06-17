@@ -43,7 +43,6 @@ public extension TokenServiceXPCListener {
     }
 }
 
-
 // MARK: - TokenService implementation internals
 
 /// Underlying Obj-C compatible protocol used for NSXPCConnection.

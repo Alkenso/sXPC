@@ -2,7 +2,7 @@ import Foundation
 import sXPC
 
 func scheduleNextNotification(server: XPCTransportServer) {
-    DispatchQueue.global().asyncAfter(deadline: .now() + .random(in: 1...3)) {
+    DispatchQueue.global().asyncAfter(deadline: .now() + .random(in: 1 ... 3)) {
         // Generate random notification
         let notification: RemoteNotification
         if Bool.random() {

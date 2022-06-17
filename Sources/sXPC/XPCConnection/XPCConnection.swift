@@ -25,7 +25,6 @@
 import Foundation
 import SwiftConvenience
 
-
 /// Bidirectional XPC Connection
 extension XPCConnection {
     public convenience init<RemoteInterfaceXPC, ExportedInterfaceXPC>(
@@ -61,7 +60,7 @@ extension XPCConnection where RemoteInterface == Never {
     ) {
         self.init(
             type,
-            optionalRemoteInterface: Optional<XPCInterface<RemoteInterface, Never>>.none,
+            optionalRemoteInterface: (XPCInterface<RemoteInterface, Never>?).none,
             optionalExportedInterface: exportedInterface
         )
     }
@@ -87,7 +86,7 @@ extension XPCConnection where ExportedInterface == Never {
         self.init(
             type,
             optionalRemoteInterface: remoteInterface,
-            optionalExportedInterface: Optional<XPCInterface<ExportedInterface, Never>>.none
+            optionalExportedInterface: XPCInterface<ExportedInterface, Never>?.none
         )
     }
     
@@ -146,11 +145,10 @@ open class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProto
     
     public let native: NSXPCConnection
     
-    
     // MARK: Private
+    
     private let exportedObjectConversion: (ExportedInterface) -> Any
     private let proxyObjectConversion: (Any) -> RemoteInterface
-    
     
     private convenience init<ExportedInterfaceXPC, RemoteInterfaceXPC>(
         _ endpoint: XPCConnectionInit,
@@ -171,9 +169,9 @@ open class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProto
         optionalProxyObjectConversion: ((Any) -> RemoteInterface)?,
         optionalExportedObjectConversion: ((ExportedInterface) -> Any)?
     ) {
-        native = connection
-        exportedObjectConversion = optionalExportedObjectConversion ?? { _ in fatalError("Exported interface not set.") }
-        proxyObjectConversion = optionalProxyObjectConversion ?? { _ in fatalError("Remote interface not set.") }
+        self.native = connection
+        self.exportedObjectConversion = optionalExportedObjectConversion ?? { _ in fatalError("Exported interface not set.") }
+        self.proxyObjectConversion = optionalProxyObjectConversion ?? { _ in fatalError("Remote interface not set.") }
         
         registerInStorage()
     }
@@ -209,7 +207,6 @@ extension XPCConnection {
         _currentConnectionStorage.writeAsync { $0.removeValue(forKey: ObjectIdentifier(self.native)) }
     }
 }
-
 
 // MARK: - XPCConnection Auxiliary
 
@@ -258,7 +255,6 @@ extension XPCConnectionProtocol {
     }
 }
 
-
 // MARK: - AnyXPCConnection
 
 public extension XPCConnectionProtocol {
@@ -272,21 +268,20 @@ public class AnyXPCConnection<RemoteInterface, ExportedInterface>: XPCConnection
     private let _invalidationHandler: GetSet<(() -> Void)?>
     private let _interruptionHandler: GetSet<(() -> Void)?>
     private let _remoteObjectProxy: (((Error) -> Void)?) -> RemoteInterface
-    private let _synchronousRemoteObjectProxy: ((@escaping (Error) -> Void) -> RemoteInterface)
+    private let _synchronousRemoteObjectProxy: (@escaping (Error) -> Void) -> RemoteInterface
     private let _resume: () -> Void
     private let _suspend: () -> Void
     private let _invalidate: () -> Void
     
-    
     public init<Connection: XPCConnectionProtocol>(_ connection: Connection) where Connection.RemoteInterface == RemoteInterface, Connection.ExportedInterface == ExportedInterface {
-        _exportedObject = .init(connection, \.exportedObject)
-        _invalidationHandler = .init(connection, \.invalidationHandler)
-        _interruptionHandler = .init(connection, \.interruptionHandler)
-        _remoteObjectProxy = connection.remoteObjectProxy
-        _synchronousRemoteObjectProxy = connection.synchronousRemoteObjectProxy
-        _resume = connection.resume
-        _suspend = connection.suspend
-        _invalidate = connection.invalidate
+        self._exportedObject = .init(connection, \.exportedObject)
+        self._invalidationHandler = .init(connection, \.invalidationHandler)
+        self._interruptionHandler = .init(connection, \.interruptionHandler)
+        self._remoteObjectProxy = connection.remoteObjectProxy
+        self._synchronousRemoteObjectProxy = connection.synchronousRemoteObjectProxy
+        self._resume = connection.resume
+        self._suspend = connection.suspend
+        self._invalidate = connection.invalidate
     }
     
     public var exportedObject: ExportedInterface? {

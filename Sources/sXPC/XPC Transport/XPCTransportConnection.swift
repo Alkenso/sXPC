@@ -100,8 +100,8 @@ public class XPCTransportConnection {
         }
     }
     
-    @Atomic public private(set)var state: XPCTransportConnectionState?
-    @Atomic public private(set)var connectionToken: audit_token_t?
+    @Atomic public private(set) var state: XPCTransportConnectionState?
+    @Atomic public private(set) var connectionToken: audit_token_t?
     
     /// Unique ID of the connection
     /// `peerID` is the same for both client and server parts of the same connection
@@ -112,7 +112,6 @@ public class XPCTransportConnection {
     ///
     /// `peerUserInfo` is the same for both client and server parts of the same connection
     public var peerUserInfo = Data()
-    
     
     public func activate() {
         // On the listener side, `activate` is called twice:
@@ -235,10 +234,13 @@ public class XPCTransportConnection {
             serverActivation = connection.resume
             reply(serverHello, nil)
         } catch {
-            reply(nil, CommonError.invalidArgument(
-                arg: "Client Hello",
-                invalidValue: data,
-                description: "Failed to parse client hello from data (count = \(data.count)). Error: \(error)")
+            reply(
+                nil,
+                CommonError.invalidArgument(
+                    arg: "Client Hello",
+                    invalidValue: data,
+                    description: "Failed to parse client hello from data (count = \(data.count)). Error: \(error)"
+                )
             )
         }
         
@@ -294,7 +296,6 @@ extension XPCTransportConnection: CustomDebugStringConvertible {
 extension XPCTransportConnectionState: CustomStringConvertible {
     public var description: String { rawValue }
 }
-
 
 @objc
 private class ExportedObject: NSObject, TransportXPC {
