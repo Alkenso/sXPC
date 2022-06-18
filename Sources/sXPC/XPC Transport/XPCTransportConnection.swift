@@ -45,13 +45,13 @@ public enum XPCTransportConnectionState: String, Hashable, CaseIterable {
     /// Usually a good point to prepare/reset related program state
     ///
     /// Note: this state comes to 'stateHandler' on EACH reconnect attempt.
-    /// This allows the client to drop connection is too many reconnects occur
+    /// This allows the client to drop connection if too many reconnects occur
     case connecting
     
     /// Connection is ready for use. It is OK to start message exchange
     case connected
     
-    /// Connection is invalidated and closed. No messages with go though it
+    /// Connection is invalidated and closed. No messages will go though it
     case invalidated
 }
 
@@ -120,7 +120,7 @@ public class XPCTransportConnection {
         // On the listener side, `activate` is called twice:
         // 1. When XPCListener receives new connection,
         //    transport activation performs handshake and suspends the connection
-        // 2. When the listener's client setup transport and ready to start using it
+        // 2. When the listener's client setup transport and ready to start to use it
         
         if let serverActivation = serverActivation {
             serverActivation()
