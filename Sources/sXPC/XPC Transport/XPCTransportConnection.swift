@@ -113,6 +113,9 @@ public class XPCTransportConnection {
     /// `peerUserInfo` is the same for both client and server parts of the same connection
     public var peerUserInfo = Data()
     
+    /// Delay between reconnect attempts if connection is dropped. Specify `nil` to disable reconnect at all
+    public var reconnectDelay: TimeInterval? = 0.5
+    
     public func activate() {
         // On the listener side, `activate` is called twice:
         // 1. When XPCListener receives new connection,
@@ -257,12 +260,14 @@ public class XPCTransportConnection {
     
     private func reconnect() {
         connectionQueue.async {
-            guard let xpc = self.xpc else {
+            guard let xpc = self.xpc, let reconnectDelay = self.reconnectDelay else {
                 self.updateState(.invalidated)
                 return
             }
-            self.connection = XPCConnection(xpc, remoteInterface: .transport, exportedInterface: .transport)
-            self.prepareAndResume(connection: self.connection)
+            self.connectionQueue.asyncAfter(deadline: .now() + reconnectDelay) {
+                self.connection = XPCConnection(xpc, remoteInterface: .transport, exportedInterface: .transport)
+                self.prepareAndResume(connection: self.connection)
+            }
         }
     }
     
