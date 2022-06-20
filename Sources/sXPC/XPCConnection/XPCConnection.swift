@@ -177,18 +177,18 @@ open class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProto
     }
     
     deinit {
-        underesterFromStorage()
+        unregisterFromStorage()
     }
 }
 
-private var _currentConnectionStorage = Synchronized<[ObjectIdentifier: AnyObject]>(.serial)
+private var _currentConnectionStorage = Synchronized<[ObjectIdentifier: Weak<AnyObject>]>(.serial)
 
 extension XPCConnection {
     public static func current() throws -> XPCConnection {
         guard let connection = NSXPCConnection.current() else {
             throw CommonError.unwrapNil("NSXPCConnection.current")
         }
-        guard let current = _currentConnectionStorage.read({ $0[ObjectIdentifier(connection)] }) else {
+        guard let current = _currentConnectionStorage.read({ $0[ObjectIdentifier(connection)]?.value }) else {
             throw CommonError.notFound(what: "NSXPCConnection", where: "currentConnectionStorage")
         }
         if let concreteCurrent = current as? Self {
@@ -200,11 +200,11 @@ extension XPCConnection {
     }
     
     private func registerInStorage() {
-        _currentConnectionStorage.writeAsync { $0[ObjectIdentifier(self.native)] = self }
+        _currentConnectionStorage.writeAsync { $0[ObjectIdentifier(self.native)] = Weak(self) }
     }
     
-    private func underesterFromStorage() {
-        _currentConnectionStorage.writeAsync { $0.removeValue(forKey: ObjectIdentifier(self.native)) }
+    private func unregisterFromStorage() {
+        _currentConnectionStorage.writeAsync { [id = ObjectIdentifier(native)] in $0.removeValue(forKey: id) }
     }
 }
 
