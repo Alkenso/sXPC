@@ -1,5 +1,6 @@
 @testable import sXPC
 
+import SwiftConvenience
 import SwiftConvenienceTestUtils
 import XCTest
 
@@ -194,6 +195,29 @@ class XPCTransportTests: XCTestCase {
         let expClientGotResponse = expectation(description: "send reply")
         try client.send(Message {
             XCTAssertNil($0.failure)
+            expClientGotResponse.fulfill()
+        })
+        
+        waitForExpectations()
+    }
+    
+    func test_error() throws {
+        typealias Message = XPCTransportMessage<XPCVoid, XPCVoid>
+        
+        let expOpen = expectation(description: "connectionOpened")
+        server.connectionOpened = { _ in expOpen.fulfill() }
+        
+        let expServerReceive = expectation(description: "receiveMessageHandler")
+        server.setReceiveMessageHandler(Message.self) { _, message in
+            message.reply(.failure(CommonError("Expected error")))
+            expServerReceive.fulfill()
+        }
+        
+        client.activate()
+        
+        let expClientGotResponse = expectation(description: "send reply")
+        try client.send(Message {
+            XCTAssertNotNil($0.failure)
             expClientGotResponse.fulfill()
         })
         
