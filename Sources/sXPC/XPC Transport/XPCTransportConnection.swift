@@ -63,6 +63,7 @@ public class XPCTransportConnection {
     private var connection: XPCConnection<TransportXPC, TransportXPC>
     private var receiveDataHandler: ((Data) throws -> Void)?
     private var pendingReplies: [UUID: XPCReply] = [:]
+    private var messageQueue = DispatchQueue(label: "XPCTransportConnection.message.queue")
     
     public init(xpc: XPCConnectionInit) {
         switch xpc {
@@ -166,7 +167,7 @@ public class XPCTransportConnection {
     }
     
     private func sendReply(id: UUID, response: Result<XPCPayload, Error>) {
-        DispatchQueue.global().async {
+        messageQueue.async {
             let result = response.flatMap { value in Result { try value.data() } }
             self.connectionQueue.async {
                 self.connection
@@ -179,7 +180,7 @@ public class XPCTransportConnection {
     fileprivate func receiveRequest(_ data: Data, confirmation: @escaping (Data?, Error?) -> Void) {
         guard !receiveClientHello(data, reply: confirmation) else { return }
         
-        DispatchQueue.global().async {
+        messageQueue.async {
             guard let receiveDataHandler = self.receiveDataHandler else {
                 confirmation(nil, CommonError.fatal("Receiving is not implemented"))
                 return
@@ -201,7 +202,7 @@ public class XPCTransportConnection {
     private func fulfillPendingReply(to ids: [UUID], with response: Result<Data, Error>) {
         connectionQueue.async {
             let replys = ids.compactMap { self.pendingReplies.removeValue(forKey: $0) }
-            replys.forEach { $0.reply(.global(), self.queue, response) }
+            replys.forEach { $0.reply(self.messageQueue, self.queue, response) }
         }
     }
     

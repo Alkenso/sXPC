@@ -223,4 +223,49 @@ class XPCTransportTests: XCTestCase {
         
         waitForExpectations()
     }
+    
+    func test_serialOrder_server() throws {
+        let count = 100
+        let expServerReceive = expectation(description: "receiveMessageHandler")
+        expServerReceive.expectedFulfillmentCount = count
+        var receivedValues: [Int] = []
+        server.setReceiveMessageHandler(Int.self) { _, value in
+            receivedValues.append(value)
+            expServerReceive.fulfill()
+        }
+        
+        client.activate()
+        for i in 0..<count {
+            DispatchQueue.main.async {
+                try? self.client.send(i)
+            }
+        }
+        waitForExpectations()
+        
+        XCTAssertEqual(receivedValues, Array(0..<count))
+    }
+    
+    func test_serialOrder_client() throws {
+        let count = 100
+        server.connectionOpened = { [weak server] peer in
+            for i in 0..<count {
+                DispatchQueue.main.async {
+                    try? server?.send(to: peer.id, message: i)
+                }
+            }
+        }
+        
+        let expClientReceive = expectation(description: "receiveMessageHandler")
+        expClientReceive.expectedFulfillmentCount = count
+        var receivedValues: [Int] = []
+        client.setReceiveMessageHandler(Int.self) { value in
+            receivedValues.append(value)
+            expClientReceive.fulfill()
+        }
+        
+        client.activate()
+        waitForExpectations()
+        
+        XCTAssertEqual(receivedValues, Array(0..<count))
+    }
 }
