@@ -56,14 +56,14 @@ public enum XPCTransportConnectionState: String, Hashable, CaseIterable {
 }
 
 public class XPCTransportConnection {
-    private let connectionQueue = DispatchQueue(label: "XPCTransportConnection.connectionQueue")
+    private let connectionQueue = DispatchQueue(label: "XPCTransportConnection.connection.queue")
+    private var messageQueue = DispatchQueue(label: "XPCTransportConnection.message.queue")
     private var xpc: XPCConnectionInit?
     private let isClient: Bool
     private var serverActivation: (() -> Void)?
     private var connection: XPCConnection<TransportXPC, TransportXPC>
     private var receiveDataHandler: ((Data) throws -> Void)?
     private var pendingReplies: [UUID: XPCReply] = [:]
-    private var messageQueue = DispatchQueue(label: "XPCTransportConnection.message.queue")
     
     public init(xpc: XPCConnectionInit) {
         switch xpc {
