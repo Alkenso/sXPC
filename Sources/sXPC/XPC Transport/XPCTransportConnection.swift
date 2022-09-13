@@ -316,30 +316,10 @@ private class ExportedObject: NSObject, TransportXPC {
             receiveConfirmation(nil, CommonError.unexpected("Connection is died"))
             return
         }
-        connection.receiveRequest(data) { receiveConfirmation($0, $1?.xpcCompatibleError) }
+        connection.receiveRequest(data) { receiveConfirmation($0, $1?.xpcCompatible()) }
     }
     
     func sendReply(id: UUID, data: Data?, error: Error?) {
-        connection.value?.receiveReply(id: id, response: .init(success: data, failure: error?.xpcCompatibleError))
-    }
-}
-
-private extension Error {
-    /// Not all `Error` objects are NSSecureCoding-compilant.
-    /// Such incompatible errors cause raising of NSException.
-    /// To avoid this, we perform manual type-check and converting incompatible errors
-    /// into most close-to-original but compatible form
-    var xpcCompatibleError: Error {
-        let nsError = self as NSError
-        guard !JSONSerialization.isValidJSONObject(nsError.userInfo) else { return self }
-        
-        let compatibleError = NSError(
-            domain: nsError.domain,
-            code: nsError.code,
-            userInfo: nsError.userInfo.mapValues {
-                JSONSerialization.isValidJSONObject($0) ? $0 : String(describing: $0)
-            }
-        )
-        return compatibleError
+        connection.value?.receiveReply(id: id, response: .init(success: data, failure: error?.xpcCompatible()))
     }
 }

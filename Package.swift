@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "sXPC", targets: ["sXPC"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Alkenso/SwiftConvenience.git", from: "0.0.16"),
+        .package(url: "https://github.com/Alkenso/SwiftConvenience.git", from: "0.0.19"),
     ],
     targets: [
         .target(
