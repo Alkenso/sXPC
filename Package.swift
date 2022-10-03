@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "sXPC",
     platforms: [
-        .macOS(.v10_11),
+        .macOS(.v10_13),
     ],
     products: [
         .library(name: "sXPC", targets: ["sXPC"]),
