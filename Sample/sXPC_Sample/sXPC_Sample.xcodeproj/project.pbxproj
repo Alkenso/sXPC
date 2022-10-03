@@ -293,7 +293,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ENABLE_HARDENED_RUNTIME = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 			};
 			name = Debug;
 		};
@@ -301,7 +301,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ENABLE_HARDENED_RUNTIME = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 			};
 			name = Release;
 		};
