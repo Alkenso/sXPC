@@ -102,22 +102,24 @@ extension XPCConnection where ExportedInterface == Never {
     }
 }
 
-/// XPCConnection is Swift typesafe wrapper around NSXPCConnection
+/// XPCConnection is Swift typesafe wrapper around NSXPCConnection.
 /// - Parameters
-///     - RemoteInterface: type of remote interface connection deals with. May be 'Never' if connection does not expected to use remote interface
-///     - ExportedInterface: type of exported interface connection deals with. May be 'Never' if connection does not expected to use exported object
-open class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProtocol {
+///     - RemoteInterface: type of remote interface connection deals with.
+///       May be 'Never' if connection does not expected to use remote interface.
+///     - ExportedInterface: type of exported interface connection deals with.
+///       May be 'Never' if connection does not expected to use exported object.
+open class XPCConnection<RemoteInterface, ExportedInterface> {
     public var exportedObject: ExportedInterface? {
         didSet { native.exportedObject = exportedObject.flatMap(exportedObjectConversion) }
     }
     
-    public func remoteObjectProxy(withErrorHandler handler: ((Error) -> Void)?) -> RemoteInterface {
-        let proxy = native.remoteObjectProxyWithErrorHandler { handler?($0) }
-        return proxyObjectConversion(proxy)
-    }
-    
-    public func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface {
-        let proxy = native.synchronousRemoteObjectProxyWithErrorHandler(handler)
+    public func remoteObjectProxy(synchronous: Bool = false, errorHandler: ((Error) -> Void)? = nil) -> RemoteInterface {
+        let proxy: Any
+        if synchronous {
+            proxy = native.synchronousRemoteObjectProxyWithErrorHandler { errorHandler?($0)}
+        } else {
+            proxy = native.remoteObjectProxyWithErrorHandler { errorHandler?($0)}
+        }
         return proxyObjectConversion(proxy)
     }
     
@@ -150,7 +152,7 @@ open class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProto
     private let exportedObjectConversion: (ExportedInterface) -> Any
     private let proxyObjectConversion: (Any) -> RemoteInterface
     
-    private convenience init<ExportedInterfaceXPC, RemoteInterfaceXPC>(
+    internal convenience init<ExportedInterfaceXPC, RemoteInterfaceXPC>(
         _ endpoint: XPCConnectionInit,
         optionalRemoteInterface: XPCInterface<RemoteInterface, RemoteInterfaceXPC>?,
         optionalExportedInterface: XPCInterface<ExportedInterface, ExportedInterfaceXPC>?
@@ -181,7 +183,7 @@ open class XPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProto
     }
 }
 
-private var _currentConnectionStorage = Synchronized<[ObjectIdentifier: Weak<AnyObject>]>(.serial)
+private let _currentConnectionStorage = Synchronized<[ObjectIdentifier: Weak<AnyObject>]>(.serial)
 
 extension XPCConnection {
     public static func current() throws -> XPCConnection {
@@ -229,93 +231,5 @@ extension XPCConnectionInit {
         case .connection(let connection):
             return connection
         }
-    }
-}
-
-public protocol XPCConnectionProtocol: AnyObject {
-    associatedtype ExportedInterface
-    associatedtype RemoteInterface
-    
-    var exportedObject: ExportedInterface? { get set }
-    
-    func remoteObjectProxy(withErrorHandler handler: ((Error) -> Void)?) -> RemoteInterface
-    func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface
-    
-    var invalidationHandler: (() -> Void)? { get set }
-    var interruptionHandler: (() -> Void)? { get set }
-    
-    func resume()
-    func suspend()
-    func invalidate()
-}
-
-extension XPCConnectionProtocol {
-    public var remoteObjectProxy: RemoteInterface {
-        remoteObjectProxy(withErrorHandler: nil)
-    }
-}
-
-// MARK: - AnyXPCConnection
-
-public extension XPCConnectionProtocol {
-    func eraseToAnyXPCConnection() -> AnyXPCConnection<Self.RemoteInterface, Self.ExportedInterface> {
-        AnyXPCConnection(self)
-    }
-}
-
-public class AnyXPCConnection<RemoteInterface, ExportedInterface>: XPCConnectionProtocol {
-    private let _exportedObject: GetSet<ExportedInterface?>
-    private let _invalidationHandler: GetSet<(() -> Void)?>
-    private let _interruptionHandler: GetSet<(() -> Void)?>
-    private let _remoteObjectProxy: (((Error) -> Void)?) -> RemoteInterface
-    private let _synchronousRemoteObjectProxy: (@escaping (Error) -> Void) -> RemoteInterface
-    private let _resume: () -> Void
-    private let _suspend: () -> Void
-    private let _invalidate: () -> Void
-    
-    public init<Connection: XPCConnectionProtocol>(_ connection: Connection) where Connection.RemoteInterface == RemoteInterface, Connection.ExportedInterface == ExportedInterface {
-        self._exportedObject = .init(connection, \.exportedObject)
-        self._invalidationHandler = .init(connection, \.invalidationHandler)
-        self._interruptionHandler = .init(connection, \.interruptionHandler)
-        self._remoteObjectProxy = connection.remoteObjectProxy
-        self._synchronousRemoteObjectProxy = connection.synchronousRemoteObjectProxy
-        self._resume = connection.resume
-        self._suspend = connection.suspend
-        self._invalidate = connection.invalidate
-    }
-    
-    public var exportedObject: ExportedInterface? {
-        get { _exportedObject.get() }
-        set { _exportedObject.set(newValue) }
-    }
-    
-    public func remoteObjectProxy(withErrorHandler handler: ((Error) -> Void)?) -> RemoteInterface {
-        _remoteObjectProxy(handler)
-    }
-    
-    public func synchronousRemoteObjectProxy(withErrorHandler handler: @escaping (Error) -> Void) -> RemoteInterface {
-        _synchronousRemoteObjectProxy(handler)
-    }
-    
-    public var invalidationHandler: (() -> Void)? {
-        get { _invalidationHandler.get() }
-        set { _invalidationHandler.set(newValue) }
-    }
-    
-    public var interruptionHandler: (() -> Void)? {
-        get { _interruptionHandler.get() }
-        set { _interruptionHandler.set(newValue) }
-    }
-    
-    public func resume() {
-        _resume()
-    }
-    
-    public func suspend() {
-        _suspend()
-    }
-    
-    public func invalidate() {
-        _invalidate()
     }
 }

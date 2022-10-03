@@ -24,37 +24,6 @@
 
 import Foundation
 
-/// InterfaceXPC is underlying Obj-C compatible protocol used for NSXPCConnection.
-/// - note: If the file is not in the shared framework but linked to multiple targets, name it explicitly like @objc(ExplicitNameInterfaceXPC).
-/// - warning: Leave it 'internal', not 'private', due to Swift-ObjC interoperability.
-public struct XPCInterface<Interface, InterfaceXPC> {
-    public let interface: NSXPCInterface
-    let toXPC: (Interface) -> InterfaceXPC
-    let fromXPC: (Any) -> Interface
-    
-    public init(interface: NSXPCInterface, toXPC: @escaping (Interface) -> InterfaceXPC, fromXPC: @escaping (InterfaceXPC) -> Interface) {
-        self.interface = interface
-        self.toXPC = toXPC
-        self.fromXPC = {
-            guard let proxy = $0 as? InterfaceXPC else {
-                fatalError("Proxy MUST be of type \(InterfaceXPC.self).")
-            }
-            return fromXPC(proxy)
-        }
-    }
-}
-
-extension XPCInterface {
-    /// Creates `XPCInterface` instance for case when exposed and internal interfaces are the same
-    public static func direct(interface: NSXPCInterface) -> XPCInterface where Interface == InterfaceXPC {
-        Self(
-            interface: interface,
-            toXPC: { $0 },
-            fromXPC: { $0 }
-        )
-    }
-}
-
 extension NSCoder {
     /// Encode codable type as JSON using given NSCoder
     /// - Throws: NSException named `NSInvalidArchiveOperationException` if encoding fails
@@ -116,7 +85,7 @@ extension NSXPCInterface {
     /// Custom classes inherited from NSSecureCoding and nested in collections (NSDictionary, NSArray and same)
     /// must be explicitly declared for XPC runtime.
     /// The method declares custom types, adding most popular built-in types
-    /// to cover potential nested classes inside custom onces
+    /// to cover potential nested classes inside custom onces.
     /// - Note: This is 'object-oriented' approach of `extendClasses(_:for:argumentIndex:ofReply:`
     ///
     /// For more information on custom classes sent over XPC refer to 'Working with Custom Classes' paragraph of https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingXPCServices.html

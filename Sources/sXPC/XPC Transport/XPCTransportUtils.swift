@@ -62,6 +62,6 @@ internal protocol TransportXPC {
 
 extension XPCInterface {
     internal static var transport: XPCInterface<TransportXPC, TransportXPC> {
-        .direct(interface: NSXPCInterface(with: TransportXPC.self))
+        .direct(NSXPCInterface(with: TransportXPC.self))
     }
 }

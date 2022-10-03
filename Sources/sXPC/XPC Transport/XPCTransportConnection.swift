@@ -171,7 +171,7 @@ public class XPCTransportConnection {
             let result = response.flatMap { value in Result { try value.data() } }
             self.connectionQueue.async {
                 self.connection
-                    .remoteObjectProxy
+                    .remoteObjectProxy()
                     .sendReply(id: id, data: result.success, error: result.failure)
             }
         }
@@ -208,7 +208,7 @@ public class XPCTransportConnection {
     
     private func sendClientHello() {
         let helloData = clientHello + Data(pod: peerID.uuid) + peerUserInfo
-        connection.remoteObjectProxy.sendRequest(helloData) { response, error in
+        connection.remoteObjectProxy().sendRequest(helloData) { response, error in
             self.connectionQueue.async {
                 if response == serverHello {
                     self.updateState(.connected)
