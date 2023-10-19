@@ -23,7 +23,7 @@
  */
 
 import Foundation
-import SwiftConvenience
+import SpellbookFoundation
 
 extension XPCListener {
     public convenience init<ExportedInterfaceXPC, RemoteInterfaceXPC>(

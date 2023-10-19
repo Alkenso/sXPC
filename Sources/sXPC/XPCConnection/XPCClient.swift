@@ -23,7 +23,7 @@
  */
 
 import Foundation
-import SwiftConvenience
+import SpellbookFoundation
 
 /// XPCClient is a wrapper around XPCConnection that provide KeepAlive ability for the connection.
 public class XPCClient<RemoteInterface, ExportedInterface, ConnectedState> {

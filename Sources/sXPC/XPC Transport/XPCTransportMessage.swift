@@ -23,7 +23,7 @@
  */
 
 import Foundation
-import SwiftConvenience
+import SpellbookFoundation
 
 public struct XPCVoid: Codable {
     public init() {}

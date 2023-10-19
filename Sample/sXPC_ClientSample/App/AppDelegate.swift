@@ -1,6 +1,6 @@
 import Cocoa
 import sXPC
-import SwiftConvenience
+import SpellbookFoundation
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {

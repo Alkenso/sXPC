@@ -23,7 +23,7 @@
  */
 
 import Foundation
-import SwiftConvenience
+import SpellbookFoundation
 
 /// Bidirectional XPC Connection
 extension XPCConnection {

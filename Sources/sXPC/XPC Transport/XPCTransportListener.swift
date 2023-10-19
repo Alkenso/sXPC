@@ -23,7 +23,7 @@
  */
 
 import Foundation
-import SwiftConvenience
+import SpellbookFoundation
 
 /// XPCTransportServer listens for incoming connections, manages them and
 /// provide interfaces to send and receive messages.

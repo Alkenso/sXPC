@@ -1,14 +1,14 @@
 import sXPC
 
-import SwiftConvenience
-import SwiftConvenienceTestUtils
+import SpellbookFoundation
+import SpellbookTestUtils
 import XCTest
 
 class XPCClientTests: XCTestCase {
     private typealias Client = XPCClient<TestProtocolXPC, Never, String>
     
     fileprivate static let testVersion = "1.0.2"
-    private var listener: XPCListener<TestProtocolXPC, Never>!
+    private var listener: sXPC.XPCListener<TestProtocolXPC, Never>!
     private var client: Client!
     
     override func setUp() {

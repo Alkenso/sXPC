@@ -1,7 +1,7 @@
 @testable import sXPC
 
-import SwiftConvenience
-import SwiftConvenienceTestUtils
+import SpellbookFoundation
+import SpellbookTestUtils
 import XCTest
 
 class XPCTransportTests: XCTestCase {

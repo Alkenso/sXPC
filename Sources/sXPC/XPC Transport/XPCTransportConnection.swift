@@ -23,7 +23,7 @@
  */
 
 import Foundation
-import SwiftConvenience
+import SpellbookFoundation
 
 private let clientHello = Data(UUID(staticString: "fef88fd3-9f29-4632-8827-0b417472c8f2").uuidString.utf8)
 private let serverHello = Data(UUID(staticString: "071e1957-bf27-4669-961a-7e707b980740").uuidString.utf8)

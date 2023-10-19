@@ -16,7 +16,7 @@ XPCTransport introduces sort of stable connection between client and service end
 
 ### Library family
 You can also find Swift libraries for macOS / *OS development
-- [SwiftConvenience](https://github.com/Alkenso/SwiftConvenience): Swift common extensions and utilities used in everyday development
+- [SwiftSpellbook](https://github.com/Alkenso/SwiftSpellbook): Swift common extensions and utilities used in everyday development
 - [sLaunchctl](https://github.com/Alkenso/sLaunchctl): Swift API to register and manage daemons and user-agents
 - [sMock](https://github.com/Alkenso/sMock): Swift unit-test mocking framework similar to gtest/gmock
 
