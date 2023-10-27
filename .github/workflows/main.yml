@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: "*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - xcode: "14.2" # Swift 5.7
+            macOS: "13"
+            iOS: "16.0"
+          - xcode: "15.0" # Swift 5.9
+            macOS: "13"
+            iOS: "17.0"
+      fail-fast: false
+
+    runs-on: macos-${{ matrix.macOS }}
+    name: Build with Xcode ${{ matrix.xcode }} on macOS ${{ matrix.macOS }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Xcode Select Version
+        uses: mobiledevops/xcode-select-version-action@v1
+        with:
+          xcode-select-version: ${{ matrix.xcode }}
+      - run: xcodebuild -version 
+
+      - name: Test macOS with Xcode ${{ matrix.xcode }}
+        run: |
+          set -e 
+          set -o pipefail
+          
+          xcodebuild test -scheme sXPC -destination "platform=macOS" SWIFT_ACTIVE_COMPILATION_CONDITIONS="SPELLBOOK_SLOW_CI_x20" | xcpretty
+          
