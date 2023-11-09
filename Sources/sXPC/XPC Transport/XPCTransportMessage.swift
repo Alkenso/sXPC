@@ -85,7 +85,7 @@ extension XPCTransportMessage: Codable {
             replySender(replyID, .failure(error))
         }
         replyAction = {
-            replyDrop.release()
+            replyDrop.reset(free: false)
             replySender(replyID, $0.map { .encode($0) })
         }
     }
