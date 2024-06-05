@@ -1,3 +1,5 @@
+The package now is part of [SwiftSpellbook_macOS](https://github.com/Alkenso/SwiftSpellbook_macOS)
+
 ## sXPC - Swift-typed wrapper around NSXPCConneciton
 
 **sXPC** allows you to
